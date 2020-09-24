@@ -25,6 +25,7 @@ Related resources:
 * [Tox Automation Project](https://tox.readthedocs.io/en/latest/)
 * [Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
 
+
 ## Installation and Usage
 
 1. Install the plugin from PyPI:
@@ -61,6 +62,7 @@ poetry run tox --recreate
 
 4. 💸 Profit 💸
 
+
 ## Limitations
 
 * In general, any command line or INI settings that affect how Tox installs environment
@@ -80,6 +82,7 @@ poetry run tox --recreate
 * Alternative versions cannot be specified alongside versions from the lockfile. All
   dependencies are installed from the lockfile and alternative versions cannot be specified
   in the Tox configuration.
+
 
 ## What problems does this solve?
 
@@ -151,6 +154,7 @@ poetry run pre-commit install
 poetry run tox
 ```
 
+
 ## Contributing
 
 All project contributors and participants are expected to adhere to the
@@ -164,3 +168,41 @@ All project contributors and participants are expected to adhere to the
   [fork the repository](https://docs.github.com/en/enterprise/2.20/user/github/getting-started-with-github/fork-a-repo)
   and
   [open a pull request](https://github.com/enpaul/tox-poetry-installer/compare).
+
+
+## Roadmap
+
+This project is under active development and is classified as alpha software, not yet ready
+usage in production systems.
+
+* Beta classification will be assigned when the initial feature set is finalized
+* Stable classification will be assigned when the test suite covers an acceptable number of
+  use cases
+
+### Path to Beta
+
+- [ ] Verify that primary package dependencies (from the `.package` env) are installed
+      correctly using the Poetry backend.
+- [ ] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
+      Tox configuration option
+- [ ] Add per-environment Tox configuration option to fall back to default installation
+      backend.
+- [ ] Add detection of a changed lockfile to automatically trigger a rebuild of Tox
+      environments when necessary.
+- [ ] Add warnings when an unsupported Tox configuration option is detected while using the
+      Poetry backend.
+- [ ] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
+      and the module constants.
+- [ ] Update to use [poetry-core](https://github.com/python-poetry/poetry-core)
+      Tox configuration option) and improve robustness of the Tox and Poetry module imports
+      to avoid potentially breaking API changes in upstream packages.
+
+### Path to Stable
+
+Everything in Beta plus...
+
+- [ ] Add tests for each feature version of Tox between 2.3 and 3.20
+- [ ] Add tests for Python-3.6, 3.7, and 3.8
+- [ ] Add Github Actions based CI
+- [ ] Add CI for CPython, PyPy, and Conda
+- [ ] Add CI for Linux and Windows
