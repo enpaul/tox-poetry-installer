@@ -1,15 +1,31 @@
 # tox-poetry-installer
 
+⚠️ **This project is alpha software and should not be used in a production capacity** ⚠️
+
 ![image](https://img.shields.io/pypi/l/tox-poetry-installer)
 ![image](https://img.shields.io/pypi/v/tox-poetry-installer)
 ![image](https://img.shields.io/pypi/pyversions/tox-poetry-installer)
 
 A [Tox](https://tox.readthedocs.io/en/latest/) plugin for installing test environment
-dependencies using [Poetry](https://python-poetry.org/) from the Poetry lockfile.
+dependencies using [Poetry](https://python-poetry.org/) from the lockfile.
 
-⚠️ **This project is an early prototype and should not be used in any production capacity.**
+**Contents**
 
-## Usage
+* [Installation and Usage](#installation-and-usage)
+* [Limitations](#limitations)
+* [What problem does this solve?](#what-problems-does-this-solve)/Why would I use this?
+* [Developing](#developing)
+* [Contributing](#contributing)
+* [Roadmap](#roadmap)
+  * [Path to Beta](#path-to-beta)
+  * [Path to Stable](#path-to-stable)
+
+Related reading:
+* [Poetry Python Project Manager](https://python-poetry.org/)
+* [Tox Automation Project](https://tox.readthedocs.io/en/latest/)
+* [Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
+
+## Installation and Usage
 
 1. Install the plugin from PyPI:
 
@@ -45,7 +61,27 @@ poetry run tox --recreate
 
 4. 💸 Profit 💸
 
-## Why would I use this?
+## Limitations
+
+* In general, any command line or INI settings that affect how Tox installs environment
+  dependencies will be disabled by installing this plugin. A non-exhaustive and untested
+  list of the INI options that are not expected to work with this plugin is below:
+  * [`install_command`](https://tox.readthedocs.io/en/latest/config.html#conf-install_command)
+  * [`pip_pre`](https://tox.readthedocs.io/en/latest/config.html#conf-pip_pre)
+  * [`downloadcache`](https://tox.readthedocs.io/en/latest/config.html#conf-downloadcache) (deprecated)
+  * [`download`](https://tox.readthedocs.io/en/latest/config.html#conf-download)
+  * [`indexserver`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
+  * [`usedevelop`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
+  * [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
+
+* When the plugin is enabled all dependencies for all environments will use the Poetry backend
+  provided by the plugin; this functionality cannot be disabled on a per-environment basis.
+
+* Alternative versions cannot be specified alongside versions from the lockfile. All
+  dependencies are installed from the lockfile and alternative versions cannot be specified
+  in the Tox configuration.
+
+## What problem does this solve?
 
 [The point of using a lockfile is to create reproducable builds](https://docs.gradle.org/current/userguide/dependency_locking.html). One of the main points of Tox is to [allow a Python
 package to be built and tested in multiple environments](https://tox.readthedocs.io/en/latest/#what-is-tox). However, in the Tox configuration file the dependencies are specified with
@@ -93,8 +129,24 @@ as well. All dependency requirements are specified in one place (pyproject.toml)
 dependencies have a locked version, and everything is installed from that source of truth.
 
 
-## Planned features
+## Developing
 
-* Per-environment disabling (i.e. fallback to the default Tox installation backend)
-* Detection of lockfile changes that trigger Tox environment recreation
-* Tests
+This project requires Poetry-1.0+, see the [installation instructions here](https://python-poetry.org/docs/#installation).
+
+```bash
+# Clone the repository...
+# ...over HTTPS
+git clone https://github.com/enpaul/tox-poetry-installer.git
+# ...over SSH
+git clone git@github.com:enpaul/tox-poetry-installer.git
+
+# Create a the local project virtual environment and install dependencies
+cd tox-poetry-installer
+poetry install
+
+# Install pre-commit hooks
+poetry run pre-commit install
+
+# Run tests and static analysis
+poetry run tox
+```
