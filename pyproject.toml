@@ -2,7 +2,7 @@
 name = "tox-poetry-installer"
 version = "0.1.0"
 license = "MIT"
-authors = ["Ethan Paul <e@enp.one>"]
+authors = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
 description = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
 repository = "https://github.com/enpaul/tox-poetry-installer/"
 packages = [{include = "tox_poetry_installer.py"}]

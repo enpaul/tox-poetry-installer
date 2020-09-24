@@ -1,26 +1,26 @@
 # tox-poetry-installer
 
+A plugin for [Tox](https://tox.readthedocs.io/en/latest/) that allows test environment
+dependencies to be installed using [Poetry](https://python-poetry.org/) using its lockfile.
+
 ⚠️ **This project is alpha software and should not be used in a production capacity** ⚠️
 
 ![image](https://img.shields.io/pypi/l/tox-poetry-installer)
 ![image](https://img.shields.io/pypi/v/tox-poetry-installer)
 ![image](https://img.shields.io/pypi/pyversions/tox-poetry-installer)
 
-A [Tox](https://tox.readthedocs.io/en/latest/) plugin for installing test environment
-dependencies using [Poetry](https://python-poetry.org/) from the lockfile.
-
-**Contents**
+**Documentation**
 
 * [Installation and Usage](#installation-and-usage)
 * [Limitations](#limitations)
-* [What problem does this solve?](#what-problems-does-this-solve)/Why would I use this?
+* [What problem does this solve?](#what-problems-does-this-solve) (Why would I use this?)
 * [Developing](#developing)
 * [Contributing](#contributing)
 * [Roadmap](#roadmap)
   * [Path to Beta](#path-to-beta)
   * [Path to Stable](#path-to-stable)
 
-Related reading:
+Related resources:
 * [Poetry Python Project Manager](https://python-poetry.org/)
 * [Tox Automation Project](https://tox.readthedocs.io/en/latest/)
 * [Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
@@ -53,7 +53,7 @@ deps =
     pytest
 ```
 
-3. Run Tox and force recreating environments:
+3. Run Tox with the `--recreate` flag to rebuild the test environments:
 
 ```
 poetry run tox --recreate
@@ -81,7 +81,7 @@ poetry run tox --recreate
   dependencies are installed from the lockfile and alternative versions cannot be specified
   in the Tox configuration.
 
-## What problem does this solve?
+## What problems does this solve?
 
 [The point of using a lockfile is to create reproducable builds](https://docs.gradle.org/current/userguide/dependency_locking.html). One of the main points of Tox is to [allow a Python
 package to be built and tested in multiple environments](https://tox.readthedocs.io/en/latest/#what-is-tox). However, in the Tox configuration file the dependencies are specified with
@@ -150,3 +150,17 @@ poetry run pre-commit install
 # Run tests and static analysis
 poetry run tox
 ```
+
+## Contributing
+
+All project contributors and participants are expected to adhere to the
+[Contributor Covenant Code of Conduct, Version 2](CODE_OF_CONDUCT.md).
+
+* To report a bug, request a feature, or ask for assistance, please
+  [open an issue on the Github repository](https://github.com/enpaul/tox-poetry-installer/issues/new).
+* To report a security concern or code of conduct violation, please contact the project author
+  directly at **ethan dot paul at enp dot one**.
+* To submit an update, please
+  [fork the repository](https://docs.github.com/en/enterprise/2.20/user/github/getting-started-with-github/fork-a-repo)
+  and
+  [open a pull request](https://github.com/enpaul/tox-poetry-installer/compare).
