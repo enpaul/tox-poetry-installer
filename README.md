@@ -1,11 +1,49 @@
 # tox-poetry-installer
 
-A [Tox](https://tox.readthedocs.io/en/latest/) plugin for installing Tox environment
+![image](https://img.shields.io/pypi/l/tox-poetry-installer)
+![image](https://img.shields.io/pypi/v/tox-poetry-installer)
+![image](https://img.shields.io/pypi/pyversions/tox-poetry-installer)
+
+A [Tox](https://tox.readthedocs.io/en/latest/) plugin for installing test environment
 dependencies using [Poetry](https://python-poetry.org/) from the Poetry lockfile.
 
-⚠️ **This project is a very, very early prototype and should not be used in any production
-capacity.**
+⚠️ **This project is an early prototype and should not be used in any production capacity.**
 
+## Usage
+
+1. Install the plugin from PyPI:
+
+```
+poetry add tox-poetry-installer --dev
+```
+
+2. Remove all version specifications from the environment dependencies in `tox.ini`:
+
+```ini
+# This...
+[testenv]
+description = My cool test environment
+deps =
+    requests >=2.19,<3.0
+    toml == 0.10.0
+    pytest >=5.4
+
+# ...becomes this:
+[testenv]
+description = My cool test environment
+deps =
+    requests
+    toml
+    pytest
+```
+
+3. Run Tox and force recreating environments:
+
+```
+poetry run tox --recreate
+```
+
+4. 💸 Profit 💸
 
 ## Why would I use this?
 
