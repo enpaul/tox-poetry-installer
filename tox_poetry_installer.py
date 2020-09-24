@@ -1,17 +1,27 @@
-from pathlib import Path
+"""Tox plugin for installing environments using Poetry
+
+This plugin makes use of the ``tox_testenv_install_deps`` Tox plugin hook to replace the default
+installation functionality to install dependencies from the Poetry lockfile for the project. It
+does this by using ``poetry`` to read in the lockfile, identify necessary dependencies, and then
+use Poetry's ``PipInstaller`` class to install those packages into the Tox environment.
+"""
 import logging
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
-from poetry.factory import Factory
+from poetry.factory import Factory as PoetryFactory
 from poetry.factory import Poetry
-from poetry.packages import Package
-from poetry.installation.pip_installer import PipInstaller
-from poetry.io.null_io import NullIO
-from poetry.utils.env import VirtualEnv
-
+from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
+from poetry.io.null_io import NullIO as PoetryNullIO
+from poetry.packages import Package as PoetryPackage
+from poetry.puzzle.provider import Provider as PoetryProvider
+from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
+from tox import hookimpl
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
-from tox import hookimpl
 
 
 __title__ = "tox-poetry-installer"
@@ -22,53 +32,105 @@ __license__ = "MIT"
 __authors__ = ["Ethan Paul <e@enp.one>"]
 
 
+PEP440_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
+
+
+class ToxPoetryInstallerException(Exception):
+    """Error while installing locked dependencies to the test environment"""
+
+
+class NoLockedDependencyError(ToxPoetryInstallerException):
+    """Cannot install a package that is not in the lockfile"""
+
+
 def _make_poetry(venv: ToxVirtualEnv) -> Poetry:
-    return Factory().create_poetry(venv.envconfig.config.toxinidir)
+    """Helper to make a poetry object from a toxenv"""
+    return PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
 
 
-def _find_locked_dependencies(poetry: Poetry, dependency_name: str) -> List[Package]:
-    packages: Dict[str, Package] = {
+def _find_locked_dependencies(
+    poetry: Poetry, dependency_name: str
+) -> List[PoetryPackage]:
+    """Using a poetry object identify all dependencies of a specific dependency
+
+    :param poetry: Populated poetry object which can be used to build a populated locked
+                   repository object.
+    :param dependency_name: Bare name (without version) of the dependency to fetch the transient
+                            dependencies of.
+    :returns: List of packages that need to be installed for the requested dependency.
+
+    .. note:: The package corresponding to the dependency named by ``dependency_name`` is included
+              in the list of returned packages.
+    """
+    packages: Dict[str, PoetryPackage] = {
         package.name: package
         for package in poetry.locker.locked_repository(True).packages
     }
 
     try:
         top_level = packages[dependency_name]
+
+        def find_transients(name: str) -> List[PoetryPackage]:
+            if name in PoetryProvider.UNSAFE_PACKAGES:
+                return []
+            transients = [packages[name]]
+            for dep in packages[name].requires:
+                transients += find_transients(dep.name)
+            return transients
+
+        return find_transients(top_level.name)
+
     except KeyError:
-        raise
+        if any(delimiter in dependency_name for delimiter in PEP440_VERSION_DELIMITERS):
+            message = "specifying a version in the tox environment definition is incompatible with installing from a lockfile"
+        else:
+            message = (
+                "no version of the package was found in the current project's lockfile"
+            )
 
-    def find_transients(name: str) -> List[Package]:
-        transients = [packages[name]]
-        for dep in packages[name].requires:
-            transients += find_transients(dep.name)
-        return transients
-
-    return find_transients(top_level.name)
+        raise NoLockedDependencyError(
+            f"Cannot install requirement '{dependency_name}': {message}"
+        ) from None
 
 
 @hookimpl
-def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
+def tox_testenv_install_deps(
+    venv: ToxVirtualEnv, action: ToxAction
+) -> Optional[List[PoetryPackage]]:
+    """Install the dependencies for the current environment
+
+    Loads the local Poetry environment and the corresponding lockfile then pulls the dependencies
+    specified by the Tox environment. Finally these dependencies are installed into the Tox
+    environment using the Poetry ``PipInstaller`` backend.
+
+    :param venv: Tox virtual environment object with configuration for the local Tox environment.
+    :param action: Tox action object
+    """
 
     logger = logging.getLogger(__name__)
 
     if action.name == venv.envconfig.config.isolated_build_env:
-        logger.debug(f"Environment {action.name} is isolated build environment; skipping Poetry-based dependency installation")
+        logger.debug(
+            f"Environment {action.name} is isolated build environment; skipping Poetry-based dependency installation"
+        )
         return None
 
     poetry = _make_poetry(venv)
 
     logger.debug(f"Loaded project pyproject.toml from {poetry.file}")
 
-    dependencies = []
+    dependencies: List[PoetryPackage] = []
     for env_dependency in venv.envconfig.deps:
         dependencies += _find_locked_dependencies(poetry, env_dependency.name)
 
-    logger.debug(f"Identified {len(dependencies)} dependencies for environment {action.name}")
+    logger.debug(
+        f"Identified {len(dependencies)} dependencies for environment {action.name}"
+    )
 
-    installer = PipInstaller(
-        env=VirtualEnv(path=Path(venv.envconfig.envdir)),
-        io=NullIO(),
-        pool=poetry.pool
+    installer = PoetryPipInstaller(
+        env=PoetryVirtualEnv(path=Path(venv.envconfig.envdir)),
+        io=PoetryNullIO(),
+        pool=poetry.pool,
     )
 
     for dependency in dependencies:
