@@ -132,7 +132,7 @@ def tox_testenv_install_deps(
 
     if action.name == venv.envconfig.config.isolated_build_env:
         reporter.verbosity1(
-            f"{_REPORTER_PREFIX} skipping isolated build environment '{action.name}'"
+            f"{_REPORTER_PREFIX} skipping isolated build env '{action.name}'"
         )
         return None
 
@@ -157,21 +157,21 @@ def tox_testenv_install_deps(
 
     if not venv.envconfig.skip_install:
         reporter.verbosity1(
-            f"{_REPORTER_PREFIX} env specifies 'skip_install = false', performing installation of development package dependencies"
+            f"{_REPORTER_PREFIX} env specifies 'skip_install = false', performing installation of dev-package dependencies"
         )
 
         primary_dependencies = poetry.locker.locked_repository(False).packages
         reporter.verbosity1(
-            f"{_REPORTER_PREFIX} identified {len(primary_dependencies)} dependencies of development package"
+            f"{_REPORTER_PREFIX} identified {len(primary_dependencies)} dependencies of dev-package"
         )
 
         reporter.verbosity0(
-            f"{_REPORTER_PREFIX} ({venv.name}) installing {len(primary_dependencies)} development package dependencies from lockfile"
+            f"{_REPORTER_PREFIX} ({venv.name}) installing {len(primary_dependencies)} dev-package dependencies from lockfile"
         )
         _install_to_venv(poetry, venv, primary_dependencies)
     else:
         reporter.verbosity1(
-            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of top-level package"
+            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of dev-package package"
         )
 
     return dependencies
