@@ -255,7 +255,7 @@ usage in production systems.
 
 ### Path to Beta
 
-- [ ] Verify that primary package dependencies (from the `.package` env) are installed
+- [X] Verify that primary package dependencies (from the `.package` env) are installed
       correctly using the Poetry backend.
 - [ ] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
       Tox configuration option
