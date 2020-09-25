@@ -5,7 +5,6 @@ installation functionality to install dependencies from the Poetry lockfile for 
 does this by using ``poetry`` to read in the lockfile, identify necessary dependencies, and then
 use Poetry's ``PipInstaller`` class to install those packages into the Tox environment.
 """
-import logging
 from pathlib import Path
 from typing import Dict
 from typing import List
@@ -20,6 +19,7 @@ from poetry.packages import Package as PoetryPackage
 from poetry.puzzle.provider import Provider as PoetryProvider
 from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
 from tox import hookimpl
+from tox import reporter
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
@@ -72,6 +72,9 @@ def _find_locked_dependencies(
 
         def find_transients(name: str) -> List[PoetryPackage]:
             if name in PoetryProvider.UNSAFE_PACKAGES:
+                reporter.warning(
+                    f"Installing '{name}' using Poetry is not supported; skipping"
+                )
                 return []
             transients = [packages[name]]
             for dep in packages[name].requires:
@@ -109,24 +112,26 @@ def tox_testenv_install_deps(
     :param action: Tox action object
     """
 
-    logger = logging.getLogger(__name__)
+    log_prefix = f"[{__title__}] {venv.name} installdeps:"
 
     if action.name == venv.envconfig.config.isolated_build_env:
-        logger.debug(
-            f"Environment {action.name} is isolated build environment; skipping Poetry-based dependency installation"
+        reporter.verbosity1(
+            f"{log_prefix} skipping isolated build environment '{action.name}'"
         )
         return None
 
     poetry = _make_poetry(venv)
 
-    logger.debug(f"Loaded project pyproject.toml from {poetry.file}")
+    reporter.verbosity1(
+        f"{log_prefix} loaded project pyproject.toml from {poetry.file}"
+    )
 
     dependencies: List[PoetryPackage] = []
     for env_dependency in venv.envconfig.deps:
         dependencies += _find_locked_dependencies(poetry, env_dependency.name)
 
-    logger.debug(
-        f"Identified {len(dependencies)} dependencies for environment {action.name}"
+    reporter.verbosity1(
+        f"{log_prefix} identified {len(dependencies)} dependencies for environment {action.name}"
     )
 
     installer = PoetryPipInstaller(
@@ -136,7 +141,7 @@ def tox_testenv_install_deps(
     )
 
     for dependency in dependencies:
-        logger.info(f"Installing environment dependency: {dependency}")
+        reporter.verbosity0(f"{log_prefix} installing {dependency}")
         installer.install(dependency)
 
     return dependencies
