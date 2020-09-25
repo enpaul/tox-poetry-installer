@@ -265,7 +265,7 @@ usage in production systems.
       environments when necessary.
 - [ ] Add warnings when an unsupported Tox configuration option is detected while using the
       Poetry backend.
-- [ ] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
+- [X] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
       and the module constants.
 - [ ] Update to use [poetry-core](https://github.com/python-poetry/poetry-core)
       Tox configuration option) and improve robustness of the Tox and Poetry module imports
