@@ -27,7 +27,7 @@ poetry_installer = "tox_poetry_installer"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-poetry = "^1.0.0"
+poetry = ">=1.0.0, <1.1.0"
 tox = "^2.3.0 || ^3.0.0"
 
 [tool.poetry.dev-dependencies]
