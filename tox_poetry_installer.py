@@ -29,10 +29,10 @@ __summary__ = "Tox plugin to install Tox environment dependencies using the Poet
 __version__ = "0.1.0"
 __url__ = "https://github.com/enpaul/tox-poetry-installer/"
 __license__ = "MIT"
-__authors__ = ["Ethan Paul <e@enp.one>"]
+__authors__ = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
 
 
-PEP440_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
+_PEP508_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
 
 
 class ToxPoetryInstallerException(Exception):
@@ -81,7 +81,9 @@ def _find_locked_dependencies(
         return find_transients(top_level.name)
 
     except KeyError:
-        if any(delimiter in dependency_name for delimiter in PEP440_VERSION_DELIMITERS):
+        if any(
+            delimiter in dependency_name for delimiter in _PEP508_VERSION_DELIMITERS
+        ):
             message = "specifying a version in the tox environment definition is incompatible with installing from a lockfile"
         else:
             message = (
