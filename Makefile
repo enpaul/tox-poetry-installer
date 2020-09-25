@@ -31,3 +31,6 @@ source: ## Build Python source distribution package
 
 test: ## Run the project testsuite(s)
 	poetry run tox --recreate
+
+publish: wheel source ## Build and upload to pypi (requires $PYPI_API_KEY be set)
+	poetry publish --username __token__ --password $(PYPI_API_KEY)
