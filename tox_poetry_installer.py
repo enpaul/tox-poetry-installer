@@ -86,19 +86,18 @@ def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
     locked_deps = []
 
     for dep in venv.envconfig.deps:
-        reporter.verbosity1(f"{_REPORTER_PREFIX} sorting '{dep.name}'")
         if venv.envconfig.require_locked_deps:
             reporter.verbosity1(
                 f"{_REPORTER_PREFIX} lock required for env, treating '{dep.name}' as locked env dependency"
             )
-            dep.name.replace(_MAGIC_SUFFIX_MARKER, "")
+            dep.name = dep.name.replace(_MAGIC_SUFFIX_MARKER, "")
             locked_deps.append(dep)
         else:
             if dep.name.endswith(_MAGIC_SUFFIX_MARKER):
                 reporter.verbosity1(
                     f"{_REPORTER_PREFIX} specification includes marker '{_MAGIC_SUFFIX_MARKER}', treating '{dep.name}' as locked env dependency"
                 )
-                dep.name.replace(_MAGIC_SUFFIX_MARKER, "")
+                dep.name = dep.name.replace(_MAGIC_SUFFIX_MARKER, "")
                 locked_deps.append(dep)
             else:
                 reporter.verbosity1(
@@ -110,7 +109,7 @@ def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
         f"{_REPORTER_PREFIX} identified {len(locked_deps)} locked env dependencies for installation from poetry lockfile: {[item.name for item in locked_deps]}"
     )
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(unlocked_deps)} unlocked env dependencies for installation using default backend"
+        f"{_REPORTER_PREFIX} identified {len(unlocked_deps)} unlocked env dependencies for installation using default backend: {[item.name for item in unlocked_deps]}"
     )
 
     return _SortedEnvDeps(locked_deps=locked_deps, unlocked_deps=unlocked_deps)
@@ -136,9 +135,7 @@ def _install_to_venv(
         installer.install(dependency)
 
 
-def _find_locked_dependencies(
-    poetry: Poetry, dependency_name: str
-) -> List[PoetryPackage]:
+def _find_transients(poetry: Poetry, dependency_name: str) -> List[PoetryPackage]:
     """Using a poetry object identify all dependencies of a specific dependency
 
     :param poetry: Populated poetry object which can be used to build a populated locked
@@ -158,7 +155,7 @@ def _find_locked_dependencies(
     try:
         top_level = packages[dependency_name]
 
-        def find_transients(name: str) -> List[PoetryPackage]:
+        def find_deps_of_deps(name: str) -> List[PoetryPackage]:
             if name in PoetryProvider.UNSAFE_PACKAGES:
                 reporter.warning(
                     f"{_REPORTER_PREFIX} installing '{name}' using Poetry is not supported; skipping"
@@ -166,23 +163,21 @@ def _find_locked_dependencies(
                 return []
             transients = [packages[name]]
             for dep in packages[name].requires:
-                transients += find_transients(dep.name)
+                transients += find_deps_of_deps(dep.name)
             return transients
 
-        return find_transients(top_level.name)
+        return find_deps_of_deps(top_level.name)
 
     except KeyError:
         if any(
             delimiter in dependency_name for delimiter in _PEP508_VERSION_DELIMITERS
         ):
-            message = "specifying a version in the tox environment definition is incompatible with installing from a lockfile"
+            message = "cannot specify a version for a locked env dependency"
         else:
-            message = (
-                "no version of the package was found in the current project's lockfile"
-            )
+            message = "no version of the env dependency was found in the current project's lockfile"
 
         raise NoLockedDependencyError(
-            f"Cannot install requirement '{dependency_name}': {message}"
+            f"Cannot install env dependency '{dependency_name}': {message}"
         ) from None
 
 
@@ -196,7 +191,7 @@ def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
 
     dependencies: List[PoetryPackage] = []
     for dep in env_deps.locked_deps:
-        dependencies += _find_locked_dependencies(poetry, dep.name)
+        dependencies += _find_transients(poetry, dep.name)
 
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} identified {len(dependencies)} actual dependencies from {len(venv.envconfig.deps)} specified env dependencies"
@@ -210,16 +205,17 @@ def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
 
 def _install_package_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} env specifies 'skip_install = false', performing installation of dev-package dependencies"
+        f"{_REPORTER_PREFIX} performing installation of project dependencies"
     )
 
     primary_dependencies = poetry.locker.locked_repository(False).packages
+
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(primary_dependencies)} dependencies of dev-package"
+        f"{_REPORTER_PREFIX} identified {len(primary_dependencies)} dependencies of project '{poetry.package.name}'"
     )
 
     reporter.verbosity0(
-        f"{_REPORTER_PREFIX} ({venv.name}) installing {len(primary_dependencies)} dev-package dependencies from lockfile"
+        f"{_REPORTER_PREFIX} ({venv.name}) installing {len(primary_dependencies)} project dependencies from lockfile"
     )
     _install_to_venv(poetry, venv, primary_dependencies)
 
@@ -254,7 +250,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
 
     if action.name == venv.envconfig.config.isolated_build_env:
         # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
-        # that better than we can, so let them do there thing. More to the point: if you're having
+        # that better than we can, so let them do their thing. More to the point: if you're having
         # problems in the packaging env that this plugin would solve, god help you.
         reporter.verbosity1(
             f"{_REPORTER_PREFIX} skipping isolated build env '{action.name}'"
@@ -267,11 +263,14 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         f"{_REPORTER_PREFIX} loaded project pyproject.toml from {poetry.file}"
     )
 
+    # Handle the installation of any locked env dependencies from the lockfile
     _install_env_dependencies(venv, poetry)
 
+    # Handle the installation of the package dependencies from the lockfile if the package is
+    # being installed to this venv; otherwise skip installing the package dependencies
     if not venv.envconfig.skip_install:
-        _install_package_dependencies()
+        _install_package_dependencies(venv, poetry)
     else:
         reporter.verbosity1(
-            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of dev-package package"
+            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
         )
