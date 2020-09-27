@@ -60,8 +60,12 @@ class ToxPoetryInstallerException(Exception):
     """Error while installing locked dependencies to the test environment"""
 
 
-class NoLockedDependencyError(ToxPoetryInstallerException):
-    """Cannot install a package that is not in the lockfile"""
+class LockedDepVersionConflictError(ToxPoetryInstallerException):
+    """Locked dependencies cannot specify an alternate version for installation"""
+
+
+class LockedDepNotFoundError(ToxPoetryInstallerException):
+    """Locked dependency was not found in the lockfile"""
 
 
 def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
@@ -172,12 +176,11 @@ def _find_transients(poetry: Poetry, dependency_name: str) -> List[PoetryPackage
         if any(
             delimiter in dependency_name for delimiter in _PEP508_VERSION_DELIMITERS
         ):
-            message = "cannot specify a version for a locked env dependency"
-        else:
-            message = "no version of the env dependency was found in the current project's lockfile"
-
-        raise NoLockedDependencyError(
-            f"Cannot install env dependency '{dependency_name}': {message}"
+            raise LockedDepVersionConflictError(
+                f"Locked dependency '{dependency_name}' cannot include version specifier"
+            ) from None
+        raise LockedDepNotFoundError(
+            f"No version of locked dependency '{dependency_name}' found in the project lockfile"
         ) from None
 
 
@@ -191,7 +194,12 @@ def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
 
     dependencies: List[PoetryPackage] = []
     for dep in env_deps.locked_deps:
-        dependencies += _find_transients(poetry, dep.name)
+        try:
+            dependencies += _find_transients(poetry, dep.name)
+        except ToxPoetryInstallerException as err:
+            venv.status = "install-locked-deps-failed"
+            reporter.error(f"{_REPORTER_PREFIX} {err}")
+            raise err
 
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} identified {len(dependencies)} actual dependencies from {len(venv.envconfig.deps)} specified env dependencies"
