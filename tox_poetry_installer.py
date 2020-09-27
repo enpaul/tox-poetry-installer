@@ -10,6 +10,7 @@ from typing import Dict
 from typing import List
 from typing import NamedTuple
 from typing import Sequence
+from typing import Set
 from typing import Tuple
 
 from poetry.factory import Factory as PoetryFactory
@@ -139,7 +140,7 @@ def _install_to_venv(
         installer.install(dependency)
 
 
-def _find_transients(poetry: Poetry, dependency_name: str) -> List[PoetryPackage]:
+def _find_transients(poetry: Poetry, dependency_name: str) -> Set[PoetryPackage]:
     """Using a poetry object identify all dependencies of a specific dependency
 
     :param poetry: Populated poetry object which can be used to build a populated locked
@@ -170,7 +171,7 @@ def _find_transients(poetry: Poetry, dependency_name: str) -> List[PoetryPackage
                 transients += find_deps_of_deps(dep.name)
             return transients
 
-        return find_deps_of_deps(top_level.name)
+        return set(find_deps_of_deps(top_level.name))
 
     except KeyError:
         if any(
@@ -187,23 +188,23 @@ def _find_transients(poetry: Poetry, dependency_name: str) -> List[PoetryPackage
 def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
     env_deps = _sort_env_deps(venv)
 
-    reporter.verbosity1(
-        f"{_REPORTER_PREFIX} updating env config with {len(env_deps.unlocked_deps)} unlocked env dependencies for installation using the default backend"
-    )
-    venv.envconfig.deps = env_deps.unlocked_deps
-
     dependencies: List[PoetryPackage] = []
     for dep in env_deps.locked_deps:
         try:
             dependencies += _find_transients(poetry, dep.name)
         except ToxPoetryInstallerException as err:
-            venv.status = "install-locked-deps-failed"
+            venv.status = "lockfile installation failed"
             reporter.error(f"{_REPORTER_PREFIX} {err}")
             raise err
 
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} identified {len(dependencies)} actual dependencies from {len(venv.envconfig.deps)} specified env dependencies"
     )
+
+    reporter.verbosity1(
+        f"{_REPORTER_PREFIX} updating env config with {len(env_deps.unlocked_deps)} unlocked env dependencies for installation using the default backend"
+    )
+    venv.envconfig.deps = env_deps.unlocked_deps
 
     reporter.verbosity0(
         f"{_REPORTER_PREFIX} ({venv.name}) installing {len(dependencies)} env dependencies from lockfile"
