@@ -276,9 +276,14 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
 
     # Handle the installation of the package dependencies from the lockfile if the package is
     # being installed to this venv; otherwise skip installing the package dependencies
-    if not venv.envconfig.skip_install:
+    if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
         _install_package_dependencies(venv, poetry)
     else:
-        reporter.verbosity1(
-            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
-        )
+        if venv.envconfig.skip_install:
+            reporter.verbosity1(
+                f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
+            )
+        elif venv.envconfig.config.skipsdist:
+            reporter.verbosity1(
+                f"{_REPORTER_PREFIX} config specifies 'skipsdist = true', skipping installation of project package"
+            )
