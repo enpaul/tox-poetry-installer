@@ -12,7 +12,7 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) using it
 **Documentation**
 
 * [Installation](#installation)
-* [Getting Started](#getting-started)
+* [Usage](#usage)
 * [Drawbacks](#drawbacks)
 * [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Developing](#developing)
@@ -32,13 +32,13 @@ Related resources:
 Add the plugin as a development dependency a project using Poetry:
 
 ```
-#> poetry add tox-poetry-installer --dev
+~ $: poetry add tox-poetry-installer --dev
 ```
 
 Confirm that the plugin is installed, and Tox recognizes it, by checking the Tox version:
 
 ```
-#> poetry run tox --version
+~ $: poetry run tox --version
 3.20.0 imported from .venv/lib64/python3.8/site-packages/tox/__init__.py
 registered plugins:
     tox-poetry-installer-0.2.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
@@ -49,11 +49,11 @@ same environment as Tox:
 
 ```
 # Calling the virtualenv's 'pip' binary directly will cause pip to install to that virtualenv
-#> /path/to/my/automation/virtualenv/bin/pip install tox
-#> /path/to/my/automation/virtualenv/bin/pip install tox-poetry-installer
+~ $: /path/to/my/automation/virtualenv/bin/pip install tox
+~ $: /path/to/my/automation/virtualenv/bin/pip install tox-poetry-installer
 ```
 
-## Getting Started
+## Usage
 
 After installing the plugin to a project, your Tox automation is already benefiting from the
 lockfile: when Tox installs your project package to one of your environments, all the dependencies
@@ -62,8 +62,8 @@ happens automatically and requires no configuration changes.
 
 But what about the rest of your Tox environment dependencies?
 
-Let's use an example `tox.ini` file with two environments: the main `testenv` for running our
-tests and `testenv:check` for running some other helper checks:
+Let's use an example `tox.ini` file, below, that defines two environments: the main `testenv` for
+running the project tests and `testenv:check` for running some other helpful checks:
 
 ```ini
 [tox]
@@ -76,7 +76,7 @@ deps =
     pytest == 5.3.0
 commands = ...
 
-[testenv:static]
+[testenv:check]
 description = Static formatting and quality enforcement
 deps =
     pylint >=2.4.4,<2.6.0
@@ -85,13 +85,13 @@ deps =
 commands = ...
 ```
 
-Let's focus on the `testenv:static` environment first. In this project there's no reason that any
+Let's focus on the `testenv:check` environment first. In this project there's no reason that any
 of these tools should be a different version than what a human developer is using when installing
 from the lockfile. We can require that these dependencies be installed from the lockfile by adding
 the option `require_locked_deps = true` to the environment config, but this will cause an error:
 
 ```ini
-[testenv:static]
+[testenv:check]
 description = Static formatting and quality enforcement
 require_locked_deps = true
 deps =
@@ -114,7 +114,7 @@ information it errors. We can fix this by simply removing all version specifiers
 environment dependency list:
 
 ```ini
-[testenv:static]
+[testenv:check]
 description = Static formatting and quality enforcement
 require_locked_deps = true
 deps =
@@ -129,7 +129,7 @@ a new version then that updated version will be automatically installed when the
 recreated.
 
 Now let's look at the `testenv` environment. Let's make the same changes to the `testenv`
-environment that we made to `testenv:static` above; remove the PyTest version and add
+environment that we made to `testenv:check` above; remove the PyTest version and add
 `require_locked_deps = true`. Then imagine that we want to add a new (made up) tool the test
 environment called `crash_override` to the environment: we can add `crash-override` as a dependency
 of the test environment, but this will cause an error:
@@ -360,6 +360,10 @@ poetry run tox
 
 All project contributors and participants are expected to adhere to the
 [Contributor Covenant Code of Conduct, Version 2](CODE_OF_CONDUCT.md).
+
+The `devel` branch has the latest (potentially unstable) changes. The
+[tagged versions](https://github.com/enpaul/tox-poetry-installer/releases) correspond to the
+releases on PyPI.
 
 * To report a bug, request a feature, or ask for assistance, please
   [open an issue on the Github repository](https://github.com/enpaul/tox-poetry-installer/issues/new).
