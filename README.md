@@ -253,6 +253,12 @@ Tox installation backend using Pip.
 * The plugin currently depends on `poetry<1.1.0`. This can be a different version than Poetry being
   used for actual project development. (See the [road map](#roadmap))
 
+* Tox environments automatically inherit their settings from the main `testenv` environment. This
+  means that if the `require_locked_deps = true` is specified for the `testenv` environment then
+  all environments will also require locked dependencies. This can be overridden by explicitly
+  specifying `require_locked_deps = false` on child environments where unlocked dependencies are
+  needed.
+
 * There are a handful of packages that cannot be installed from the lockfile, whether as specific
   dependencies or as transient dependencies (dependencies of dependencies). This is due to
   [an ongoing discussion in the Poetry project](https://github.com/python-poetry/poetry/issues/1584);
