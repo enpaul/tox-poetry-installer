@@ -104,7 +104,7 @@ commands = ...
 Running Tox using this config gives us this error:
 
 ```
-tox_poetry_installer.NoLockedDependencyError: Cannot install env dependency 'pylint >=2.4.4,<2.6.0': cannot specify a version for a locked env dependency
+tox_poetry_installer.LockedDepVersionConflictError: Locked dependency 'pylint >=2.4.4,<2.6.0' cannot include version specifier
 ```
 
 This is because we told the Tox environment to require all dependencies to be locked, but then also
@@ -147,7 +147,7 @@ commands = ...
 Running Tox with this config gives us this error:
 
 ```
-tox_poetry_installer.NoLockedDependencyError: Cannot install env dependency 'crash-override': no version of the env dependency was found in the current project's lockfile
+tox_poetry_installer.LockedDepNotFoundError: No version of locked dependency 'crash-override' found in the project lockfile
 ```
 
 This is because `crash-override` is not in our lockfile. Tox will refuse to install a dependency
