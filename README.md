@@ -13,7 +13,7 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) using it
 
 * [Installation](#installation)
 * [Quick Start](#quick-start)
-* [Usage](#usage)
+* [Usage Examples](#usage-examples)
 * [Known Drawbacks and Problems](#known-drawbacks-and-problems)
 * [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Developing](#developing)
@@ -97,7 +97,7 @@ commands = ...
 one Tox is testing) will always be installed from the lockfile.
 
 
-## Usage
+## Usage Examples
 
 After installing the plugin to a project, your Tox automation is already benefiting from the
 lockfile: when Tox installs your project package to one of your environments, all the dependencies
