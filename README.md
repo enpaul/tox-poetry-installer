@@ -13,7 +13,7 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) using it
 
 * [Installation](#installation)
 * [Usage](#usage)
-* [Drawbacks](#drawbacks)
+* [Known Drawbacks and Problems](#known-drawbacks-and-problems)
 * [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Developing](#developing)
 * [Contributing](#contributing)
@@ -191,7 +191,7 @@ from the lockfile while it will install Requests (and all of its dependencies) u
 Tox installation backend using Pip.
 
 
-## Drawbacks
+## Known Drawbacks and Problems
 
 * The following `tox.ini` configuration options have no effect on the dependencies installed from
   the Poetry lockfile (note that they will still affect unlocked dependencies):
@@ -209,6 +209,12 @@ Tox installation backend using Pip.
 * The plugin currently depends on `poetry<1.1.0`. This can be a different version than Poetry being
   used for actual project development. (See the [road map](#roadmap))
 
+* There are a handful of packages that cannot be installed from the lockfile, whether as specific
+  dependencies or as transient dependencies (dependencies of dependencies). This is due to
+  [an ongoing discussion in the Poetry project](https://github.com/python-poetry/poetry/issues/1584);
+  the list of dependencies that cannot be installed from the lockfile can be found
+  [here](https://github.com/python-poetry/poetry/blob/cc8f59a31567f806be868aba880ae0642d49b74e/poetry/puzzle/provider.py#L55).
+  This plugin will skip these dependencies entirely, but log a warning when they are encountered.
 
 
 ## Why would I use this?
@@ -401,6 +407,7 @@ usage in production systems.
 - [ ] Update to use [poetry-core](https://github.com/python-poetry/poetry-core)
       Tox configuration option) and improve robustness of the Tox and Poetry module imports
       to avoid potentially breaking API changes in upstream packages.
+- [ ] Find and implement a way to mitigate the [Poetry UNSAFE_DEPENDENCIES bug](https://github.com/python-poetry/poetry/issues/1584).
 
 ### Path to Stable
 
