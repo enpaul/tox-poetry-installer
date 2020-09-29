@@ -191,7 +191,7 @@ def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
     dependencies: List[PoetryPackage] = []
     for dep in env_deps.locked_deps:
         try:
-            dependencies += _find_transients(poetry, dep.name)
+            dependencies += _find_transients(poetry, dep.name.lower())
         except ToxPoetryInstallerException as err:
             venv.status = "lockfile installation failed"
             reporter.error(f"{_REPORTER_PREFIX} {err}")
