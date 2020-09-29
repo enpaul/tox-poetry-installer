@@ -266,7 +266,23 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         )
         return
 
-    poetry = PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
+    try:
+        poetry = PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
+    except RuntimeError as err:
+        # Support running the plugin when the current tox project does not use Poetry for its
+        # environment/dependency management.
+        #
+        # ``RuntimeError`` is dangerous to blindly catch because it can be (and in Poetry's case,
+        # is) raised in many different places for different purposes. This check of the error
+        # content, while crude and potentially fragile, will hopefully prevent ``RuntimeError``s
+        # not caused by this specific condition to be re-raised as genuine errors. This may need
+        # tuning in the future.
+        if "[tool.poetry] section not found" in str(err):
+            reporter.verbosity1(
+                f"{_REPORTER_PREFIX} project does not use Poetry for env management, skipping installation of locked dependencies"
+            )
+            return
+        raise err
 
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} loaded project pyproject.toml from {poetry.file}"
