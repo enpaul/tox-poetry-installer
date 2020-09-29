@@ -443,17 +443,18 @@ for usage in production environments.
 - [X] Verify that primary package dependencies (from the `.package` env) are installed
       correctly using the Poetry backend.
 - [ ] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
-      Tox configuration option (#4)
+      Tox configuration option ([#4](https://github.com/enpaul/tox-poetry-installer/issues/4))
 - [X] Add per-environment Tox configuration option to fall back to default installation
       backend.
 - [ ] Add warnings when an unsupported Tox configuration option is detected while using the
-      Poetry backend. (#5)
+      Poetry backend. ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))
 - [X] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
       and the module constants.
 - [ ] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and
       improve robustness of the Tox and Poetry module imports
-      to avoid potentially breaking API changes in upstream packages. (#2)
-- [ ] Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry. (#6)
+      to avoid potentially breaking API changes in upstream packages. ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
+- [ ] Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry.
+      ([#6](https://github.com/enpaul/tox-poetry-installer/issues/6))
 - [ ] Fix logging to make proper use of Tox's logging reporter infrastructure
 
 ### Path to Stable
