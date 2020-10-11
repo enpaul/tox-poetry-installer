@@ -13,11 +13,11 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 
+from poetry.core.packages import Package as PoetryPackage
 from poetry.factory import Factory as PoetryFactory
-from poetry.factory import Poetry
 from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
 from poetry.io.null_io import NullIO as PoetryNullIO
-from poetry.packages import Package as PoetryPackage
+from poetry.poetry import Poetry
 from poetry.puzzle.provider import Provider as PoetryProvider
 from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
 from tox import hookimpl
