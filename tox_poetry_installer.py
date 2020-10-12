@@ -13,11 +13,11 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 
+from poetry.core.packages import Package as PoetryPackage
 from poetry.factory import Factory as PoetryFactory
-from poetry.factory import Poetry
 from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
 from poetry.io.null_io import NullIO as PoetryNullIO
-from poetry.packages import Package as PoetryPackage
+from poetry.poetry import Poetry
 from poetry.puzzle.provider import Provider as PoetryProvider
 from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
 from tox import hookimpl
@@ -30,7 +30,7 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 
 __title__ = "tox-poetry-installer"
 __summary__ = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 __url__ = "https://github.com/enpaul/tox-poetry-installer/"
 __license__ = "MIT"
 __authors__ = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
