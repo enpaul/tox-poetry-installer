@@ -5,11 +5,11 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 
 ⚠️ **This project is alpha software and should not be used in production environments** ⚠️
 
+[![ci-status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
 [![license](https://img.shields.io/pypi/l/tox-poetry-installer)](https://opensource.org/licenses/MIT)
 [![pypi-version](https://img.shields.io/pypi/v/tox-poetry-installer)](https://pypi.org/project/tox-poetry-installer/)
 [![python-versions](https://img.shields.io/pypi/pyversions/tox-poetry-installer)](https://www.python.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![build-status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
 
 **Documentation**
 
