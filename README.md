@@ -27,7 +27,9 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 Related resources:
 * [Poetry Python Project Manager](https://python-poetry.org/)
 * [Tox Automation Project](https://tox.readthedocs.io/en/latest/)
-* [Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
+* [Poetry Dev-Dependencies Tox Plugin](https://github.com/sinoroc/tox-poetry-dev-dependencies)
+* [Poetry Tox Plugin](https://github.com/tkukushkin/tox-poetry)
+* [Other Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
 
 
 ## Installation
