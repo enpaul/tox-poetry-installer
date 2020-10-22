@@ -251,9 +251,6 @@ Tox installation backend.
   does not work. Optional dependencies of the project package will not be installed to Tox
   environments. (See the [road map](#roadmap))
 
-* The plugin currently depends on `poetry<1.1.0`. This can be a different version than Poetry being
-  used for actual project development. (See the [road map](#roadmap))
-
 * Tox environments automatically inherit their settings from the main `testenv` environment. This
   means that if the `require_locked_deps = true` is specified for the `testenv` environment then
   all environments will also require locked dependencies. This can be overwritten by explicitly
@@ -390,7 +387,8 @@ automatically install these new versions without needing any changes to the conf
 
 ## Developing
 
-This project requires Poetry version 1.0+, see the [installation instructions here](https://python-poetry.org/docs/#installation).
+This project requires a developer to have Poetry version 1.0+ installed on their workstation, see
+the [installation instructions here](https://python-poetry.org/docs/#installation).
 
 ```bash
 # Clone the repository...
@@ -451,7 +449,7 @@ for usage in production environments.
       Poetry backend. ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))
 - [X] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
       and the module constants.
-- [ ] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and
+- [X] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and
       improve robustness of the Tox and Poetry module imports
       to avoid potentially breaking API changes in upstream packages. ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [ ] Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry.
