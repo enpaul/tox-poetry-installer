@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tox-poetry-installer"
-version = "0.2.4"
+version = "0.3.0"
 license = "MIT"
 authors = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
 description = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
@@ -31,6 +31,7 @@ poetry_installer = "tox_poetry_installer"
 [tool.poetry.dependencies]
 python = "^3.6"
 poetry = "^1.0.0"
+poetry-core = "^1.0.0"
 tox = "^2.3.0 || ^3.0.0"
 
 [tool.poetry.dev-dependencies]

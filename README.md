@@ -249,10 +249,6 @@ Tox installation backend.
   * [`indexserver`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
   * [`usedevelop`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
 
-* The [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras) setting in `tox.ini`
-  does not work. Optional dependencies of the project package will not be installed to Tox
-  environments. (See the [road map](#roadmap))
-
 * Tox environments automatically inherit their settings from the main `testenv` environment. This
   means that if the `require_locked_deps = true` is specified for the `testenv` environment then
   all environments will also require locked dependencies. This can be overwritten by explicitly
@@ -443,7 +439,7 @@ for usage in production environments.
 
 - [X] Verify that primary package dependencies (from the `.package` env) are installed
       correctly using the Poetry backend.
-- [ ] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
+- [X] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
       Tox configuration option ([#4](https://github.com/enpaul/tox-poetry-installer/issues/4))
 - [X] Add per-environment Tox configuration option to fall back to default installation
       backend.
@@ -464,6 +460,6 @@ Everything in Beta plus...
 
 - [ ] Add tests for each feature version of Tox between 2.3 and 3.20
 - [ ] Add tests for Python-3.6, 3.7, and 3.8
-- [ ] Add Github Actions based CI
+- [X] Add Github Actions based CI
 - [ ] Add CI for CPython, PyPy, and Conda
 - [ ] Add CI for Linux and Windows

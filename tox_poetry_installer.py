@@ -30,7 +30,7 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 
 __title__ = "tox-poetry-installer"
 __summary__ = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 __url__ = "https://github.com/enpaul/tox-poetry-installer/"
 __license__ = "MIT"
 __authors__ = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
@@ -52,6 +52,9 @@ _REPORTER_PREFIX = f"[{__title__}]:"
 _MAGIC_SUFFIX_MARKER = "@poetry"
 
 
+PackageMap = Dict[str, PoetryPackage]
+
+
 class _SortedEnvDeps(NamedTuple):
     unlocked_deps: List[ToxDepConfig]
     locked_deps: List[ToxDepConfig]
@@ -67,6 +70,10 @@ class LockedDepVersionConflictError(ToxPoetryInstallerException):
 
 class LockedDepNotFoundError(ToxPoetryInstallerException):
     """Locked dependency was not found in the lockfile"""
+
+
+class ExtraNotFoundError(ToxPoetryInstallerException):
+    """Project package extra not defined in project's pyproject.toml"""
 
 
 def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
@@ -140,7 +147,7 @@ def _install_to_venv(
         installer.install(dependency)
 
 
-def _find_transients(poetry: Poetry, dependency_name: str) -> Set[PoetryPackage]:
+def _find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPackage]:
     """Using a poetry object identify all dependencies of a specific dependency
 
     :param poetry: Populated poetry object which can be used to build a populated locked
@@ -152,10 +159,6 @@ def _find_transients(poetry: Poetry, dependency_name: str) -> Set[PoetryPackage]
     .. note:: The package corresponding to the dependency named by ``dependency_name`` is included
               in the list of returned packages.
     """
-    packages: Dict[str, PoetryPackage] = {
-        package.name: package
-        for package in poetry.locker.locked_repository(True).packages
-    }
 
     try:
         top_level = packages[dependency_name]
@@ -185,13 +188,15 @@ def _find_transients(poetry: Poetry, dependency_name: str) -> Set[PoetryPackage]
         ) from None
 
 
-def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
+def _install_env_dependencies(
+    venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
+):
     env_deps = _sort_env_deps(venv)
 
     dependencies: List[PoetryPackage] = []
     for dep in env_deps.locked_deps:
         try:
-            dependencies += _find_transients(poetry, dep.name.lower())
+            dependencies += _find_transients(packages, dep.name.lower())
         except ToxPoetryInstallerException as err:
             venv.status = "lockfile installation failed"
             reporter.error(f"{_REPORTER_PREFIX} {err}")
@@ -212,21 +217,44 @@ def _install_env_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
     _install_to_venv(poetry, venv, dependencies)
 
 
-def _install_package_dependencies(venv: ToxVirtualEnv, poetry: Poetry):
+def _install_package_dependencies(
+    venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
+):
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} performing installation of project dependencies"
     )
 
-    primary_dependencies = poetry.locker.locked_repository(False).packages
+    base_dependencies = [
+        packages[item.name] for item in poetry.package.requires if not item.is_optional
+    ]
+
+    for extra in venv.envconfig.extras:
+        try:
+            extra_dependencies = [
+                packages[item.name] for item in poetry.package.extras[extra]
+            ]
+        except KeyError:
+            raise ExtraNotFoundError(
+                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
+            ) from None
+
+    dependencies: List[PoetryPackage] = []
+    for dep in base_dependencies + extra_dependencies:
+        try:
+            dependencies += _find_transients(packages, dep.name.lower())
+        except ToxPoetryInstallerException as err:
+            venv.status = "lockfile installation failed"
+            reporter.error(f"{_REPORTER_PREFIX} {err}")
+            raise err
 
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(primary_dependencies)} dependencies of project '{poetry.package.name}'"
+        f"{_REPORTER_PREFIX} identified {len(dependencies)} dependencies of project '{poetry.package.name}'"
     )
 
     reporter.verbosity0(
-        f"{_REPORTER_PREFIX} ({venv.name}) installing {len(primary_dependencies)} project dependencies from lockfile"
+        f"{_REPORTER_PREFIX} ({venv.name}) installing {len(dependencies)} project dependencies from lockfile"
     )
-    _install_to_venv(poetry, venv, primary_dependencies)
+    _install_to_venv(poetry, venv, dependencies)
 
 
 @hookimpl
@@ -283,19 +311,26 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         f"{_REPORTER_PREFIX} loaded project pyproject.toml from {poetry.file}"
     )
 
+    package_map: PackageMap = {
+        package.name: package
+        for package in poetry.locker.locked_repository(True).packages
+    }
+
     # Handle the installation of any locked env dependencies from the lockfile
-    _install_env_dependencies(venv, poetry)
+    _install_env_dependencies(venv, poetry, package_map)
 
     # Handle the installation of the package dependencies from the lockfile if the package is
     # being installed to this venv; otherwise skip installing the package dependencies
-    if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
-        _install_package_dependencies(venv, poetry)
-    else:
-        if venv.envconfig.skip_install:
-            reporter.verbosity1(
-                f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
-            )
-        elif venv.envconfig.config.skipsdist:
-            reporter.verbosity1(
-                f"{_REPORTER_PREFIX} config specifies 'skipsdist = true', skipping installation of project package"
-            )
+    if venv.envconfig.skip_install:
+        reporter.verbosity1(
+            f"{_REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
+        )
+        return
+
+    if venv.envconfig.config.skipsdist:
+        reporter.verbosity1(
+            f"{_REPORTER_PREFIX} config specifies 'skipsdist = true', skipping installation of project package"
+        )
+        return
+
+    _install_package_dependencies(venv, poetry, package_map)
