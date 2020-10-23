@@ -452,7 +452,8 @@ for usage in production environments.
       to avoid potentially breaking API changes in upstream packages. ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [ ] Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry.
       ([#6](https://github.com/enpaul/tox-poetry-installer/issues/6))
-- [ ] Fix logging to make proper use of Tox's logging reporter infrastructure
+- [ ] Fix logging to make proper use of Tox's logging reporter infrastructure ([#3](https://github.com/enpaul/tox-poetry-installer/issues/3))
+- [ ] Add configuration option for installing all dev-dependencies to a testenv ([#14](https://github.com/enpaul/tox-poetry-installer/issues/14))
 
 ### Path to Stable
 
