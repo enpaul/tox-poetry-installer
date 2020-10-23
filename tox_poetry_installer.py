@@ -1,9 +1,24 @@
 """Tox plugin for installing environments using Poetry
 
-This plugin makes use of the ``tox_testenv_install_deps`` Tox plugin hook to replace the default
+This plugin makes use of the ``tox_testenv_install_deps`` Tox plugin hook to augment the default
 installation functionality to install dependencies from the Poetry lockfile for the project. It
 does this by using ``poetry`` to read in the lockfile, identify necessary dependencies, and then
 use Poetry's ``PipInstaller`` class to install those packages into the Tox environment.
+
+Quick definition of terminology:
+
+* "project package" - the package that Tox is testing, usually the one the current project is
+  is developing; definitionally, this is the package that is built by Tox in the ``.package`` env.
+* "project package dependency" or "project dependency" - a dependency required by the project
+  package for installation; i.e. a package that would be installed when running
+  ``pip install <project package>``.
+* "environment dependency" - a dependency specified for a given testenv in the Tox configuration.
+* "locked dependency" - a package that is present in the Poetry lockfile and will be installed
+  according to the metadata in the lockfile.
+* "unlocked dependency" - a package that is either not present in the Poetry lockfile or is not
+  specified to be installed according to the metadata in the lockfile.
+* "transiety dependency" - a package not explicitly specified for installation, but required by a
+  package that is explicitly specified.
 """
 from pathlib import Path
 from typing import Dict
@@ -119,10 +134,10 @@ def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
                 unlocked_deps.append(dep)
 
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(locked_deps)} locked env dependencies for installation from poetry lockfile: {[item.name for item in locked_deps]}"
+        f"{_REPORTER_PREFIX} identified {len(locked_deps)} locked env dependencies: {[item.name for item in locked_deps]}"
     )
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(unlocked_deps)} unlocked env dependencies for installation using default backend: {[item.name for item in unlocked_deps]}"
+        f"{_REPORTER_PREFIX} identified {len(unlocked_deps)} unlocked env dependencies: {[item.name for item in unlocked_deps]}"
     )
 
     return _SortedEnvDeps(locked_deps=locked_deps, unlocked_deps=unlocked_deps)
@@ -172,7 +187,7 @@ def _find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPa
         def find_deps_of_deps(name: str) -> List[PoetryPackage]:
             if name in PoetryProvider.UNSAFE_PACKAGES:
                 reporter.warning(
-                    f"{_REPORTER_PREFIX} installing '{name}' using Poetry is not supported; skipping"
+                    f"{_REPORTER_PREFIX} installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
                 )
                 return []
             transients = [packages[name]]
@@ -218,7 +233,7 @@ def _install_env_dependencies(
             raise err
 
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(dependencies)} actual dependencies from {len(venv.envconfig.deps)} specified env dependencies"
+        f"{_REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(venv.envconfig.deps)} env dependencies"
     )
 
     reporter.verbosity1(
@@ -232,7 +247,7 @@ def _install_env_dependencies(
     _install_to_venv(poetry, venv, dependencies)
 
 
-def _install_package_dependencies(
+def _install_project_dependencies(
     venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
 ):
     """Install the dependencies of the project package
@@ -271,7 +286,7 @@ def _install_package_dependencies(
             raise err
 
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(dependencies)} dependencies of project '{poetry.package.name}'"
+        f"{_REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(poetry.package.requires)} project dependencies"
     )
 
     reporter.verbosity0(
@@ -356,4 +371,4 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         )
         return
 
-    _install_package_dependencies(venv, poetry, package_map)
+    _install_project_dependencies(venv, poetry, package_map)
