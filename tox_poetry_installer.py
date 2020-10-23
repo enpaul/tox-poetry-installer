@@ -232,6 +232,23 @@ def _install_env_dependencies(
             reporter.error(f"{_REPORTER_PREFIX} {err}")
             raise err
 
+    if venv.envconfig.install_dev_deps:
+        reporter.verbosity1(
+            f"{_REPORTER_PREFIX} env specifies 'install_env_deps = true', including Poetry dev dependencies"
+        )
+
+        dev_dependencies = [
+            dep
+            for dep in poetry.locker.locked_repository(True).packages
+            if dep not in poetry.locker.locked_repository(False).packages
+        ]
+
+        reporter.verbosity1(
+            f"{_REPORTER_PREFIX} identified {len(dev_dependencies)} Poetry dev dependencies"
+        )
+
+        dependencies = list(set(dev_dependencies + dependencies))
+
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(env_deps.locked_deps)} locked env dependencies"
     )
@@ -305,6 +322,13 @@ def tox_addoption(parser: ToxParser):
     Adds the ``require_locked_deps`` configuration option to the venv to check whether all
     dependencies should be treated as locked or not.
     """
+
+    parser.add_testenv_attribute(
+        name="install_dev_deps",
+        type="bool",
+        default=False,
+        help="Automatically install all Poetry development dependencies to the environment",
+    )
 
     parser.add_testenv_attribute(
         name="require_locked_deps",
