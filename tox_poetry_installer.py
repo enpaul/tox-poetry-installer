@@ -72,6 +72,10 @@ class LockedDepNotFoundError(ToxPoetryInstallerException):
     """Locked dependency was not found in the lockfile"""
 
 
+class ExtraNotFoundError(ToxPoetryInstallerException):
+    """Project package extra not defined in project's pyproject.toml"""
+
+
 def _sort_env_deps(venv: ToxVirtualEnv) -> _SortedEnvDeps:
     """Sorts the environment dependencies by lock status
 
@@ -221,13 +225,18 @@ def _install_package_dependencies(
     )
 
     base_dependencies = [
-        packages[item.name] for item in poetry.packages.requires if not item.is_optional
+        packages[item.name] for item in poetry.package.requires if not item.is_optional
     ]
 
     for extra in venv.envconfig.extras:
-        extra_dependencies = [
-            packages[item.name] for item in poetry.package.extras[extra]
-        ]
+        try:
+            extra_dependencies = [
+                packages[item.name] for item in poetry.package.extras[extra]
+            ]
+        except KeyError:
+            raise ExtraNotFoundError(
+                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
+            ) from None
 
     dependencies: List[PoetryPackage] = []
     for dep in base_dependencies + extra_dependencies:
