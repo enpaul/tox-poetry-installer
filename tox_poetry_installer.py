@@ -52,6 +52,7 @@ _REPORTER_PREFIX = f"[{__title__}]:"
 _MAGIC_SUFFIX_MARKER = "@poetry"
 
 
+# Map of package names to the package object
 PackageMap = Dict[str, PoetryPackage]
 
 
@@ -136,6 +137,11 @@ def _install_to_venv(
     :param venv: Tox virtual environment to install the packages to
     :param packages: List of packages to install to the virtual environment
     """
+
+    reporter.verbosity1(
+        f"{_REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
+    )
+
     installer = PoetryPipInstaller(
         env=PoetryVirtualEnv(path=Path(venv.envconfig.envdir)),
         io=PoetryNullIO(),
@@ -191,6 +197,15 @@ def _find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPa
 def _install_env_dependencies(
     venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
 ):
+    """Install the packages for a specified testenv
+
+    Processes the tox environment config, identifies any locked environment dependencies, pulls
+    them from the lockfile, and installs them to the virtual environment.
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
     env_deps = _sort_env_deps(venv)
 
     dependencies: List[PoetryPackage] = []
@@ -220,6 +235,14 @@ def _install_env_dependencies(
 def _install_package_dependencies(
     venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
 ):
+    """Install the dependencies of the project package
+
+    Install all primary dependencies of the project package.
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
     reporter.verbosity1(
         f"{_REPORTER_PREFIX} performing installation of project dependencies"
     )
