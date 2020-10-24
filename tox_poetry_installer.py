@@ -233,7 +233,7 @@ def _install_env_dependencies(
             raise err
 
     reporter.verbosity1(
-        f"{_REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(venv.envconfig.deps)} env dependencies"
+        f"{_REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(env_deps.locked_deps)} locked env dependencies"
     )
 
     reporter.verbosity1(
@@ -262,13 +262,16 @@ def _install_project_dependencies(
         f"{_REPORTER_PREFIX} performing installation of project dependencies"
     )
 
-    base_dependencies = [
-        packages[item.name] for item in poetry.package.requires if not item.is_optional
+    base_dependencies: List[PoetryPackage] = [
+        packages[item.name]
+        for item in poetry.package.requires
+        if not item.is_optional()
     ]
 
+    extra_dependencies: List[PoetryPackage] = []
     for extra in venv.envconfig.extras:
         try:
-            extra_dependencies = [
+            extra_dependencies += [
                 packages[item.name] for item in poetry.package.extras[extra]
             ]
         except KeyError:
