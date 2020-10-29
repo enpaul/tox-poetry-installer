@@ -96,6 +96,10 @@ deps =
 commands = ...
 ```
 
+Alternatively, to quickly install all Poetry dev-dependencies to a Tox environment, add the
+`install_dev_deps =  true` option to the environment configuration. This option can be used either
+with the `require_locked_deps = true` option or without it
+
 **Note:** Regardless of the settings outlined above, all dependencies of the project package (the
 one Tox is testing) will always be installed from the lockfile.
 
