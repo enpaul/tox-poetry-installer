@@ -60,45 +60,39 @@ If using Pip, ensure that the plugin is installed to the same environment as Tox
 
 ## Quick Start
 
-To require a Tox environment install all it's dependencies from the Poetry lockfile, add the
-`require_locked_deps = true` option to the environment configuration and remove all version
-specifiers from the dependency list. The versions to install will be taken from the lockfile
-directly:
+To add dependencies from the lockfile to a Tox environment, add the option `locked_deps`
+to the environment configuration and list names of dependencies (with no version
+specifier) under it:
 
 ```ini
 [testenv]
-description = Run the tests
-require_locked_deps = true
-deps =
-    pytest
-    pytest-cov
+description = Some very cool tests
+locked_deps =
     black
     pylint
     mypy
 commands = ...
 ```
 
-To require specific dependencies be installed from the Poetry lockfile, and let the rest be
-installed using the default Tox installation backend, add the suffix `@poetry` to the dependencies.
-In the example below the `pytest`, `pytest-cov`, and `black` dependencies will be installed from
-the lockfile while `pylint` and `mypy` will be installed using the versions specified here:
+The standard `deps` option can be used in parallel with the `locked_deps` option to
+install unlocked dependencies (dependencies not in the lockfile) alongside locked
+dependencies:
 
 ```ini
 [testenv]
-description = Run the tests
-require_locked_deps = true
+description = Some very cool tests
+locked_deps =
+    black
+    pylint
+    mypy
 deps =
-    pytest@poetry
-    pytest-cov@poetry
-    black@poetry
-    pylint >=2.5.0
-    mypy == 0.770
+    pytest == 6.1.1
+    pytest-cov >= 2.10, <2.11
 commands = ...
 ```
 
 Alternatively, to quickly install all Poetry dev-dependencies to a Tox environment, add the
-`install_dev_deps =  true` option to the environment configuration. This option can be used either
-with the `require_locked_deps = true` option or without it
+`install_dev_deps =  true` option to the environment configuration.
 
 **Note:** Regardless of the settings outlined above, all dependencies of the project package (the
 one Tox is testing) will always be installed from the lockfile.
@@ -372,7 +366,7 @@ dependencies:
 [testenv]
 description = Some very cool tests
 require_locked_deps = true
-deps =
+locked_deps =
     foo
     bar
     baz
