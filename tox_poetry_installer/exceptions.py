@@ -26,3 +26,7 @@ class LockedDepNotFoundError(ToxPoetryInstallerException):
 
 class ExtraNotFoundError(ToxPoetryInstallerException):
     """Project package extra not defined in project's pyproject.toml"""
+
+
+class LockedDepsRequiredError(ToxPoetryInstallerException):
+    """Environment cannot specify unlocked dependencies when locked dependencies are required"""
