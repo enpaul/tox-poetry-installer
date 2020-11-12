@@ -7,7 +7,7 @@ from pathlib import Path
 
 import toml
 
-import tox_poetry_installer
+from tox_poetry_installer import __about__
 
 
 def test_metadata():
@@ -16,16 +16,14 @@ def test_metadata():
     with (Path(__file__).resolve().parent / ".." / "pyproject.toml").open() as infile:
         pyproject = toml.load(infile, _dict=dict)
 
-    assert pyproject["tool"]["poetry"]["name"] == tox_poetry_installer.__title__
-    assert pyproject["tool"]["poetry"]["version"] == tox_poetry_installer.__version__
-    assert pyproject["tool"]["poetry"]["license"] == tox_poetry_installer.__license__
-    assert (
-        pyproject["tool"]["poetry"]["description"] == tox_poetry_installer.__summary__
-    )
-    assert pyproject["tool"]["poetry"]["repository"] == tox_poetry_installer.__url__
+    assert pyproject["tool"]["poetry"]["name"] == __about__.__title__
+    assert pyproject["tool"]["poetry"]["version"] == __about__.__version__
+    assert pyproject["tool"]["poetry"]["license"] == __about__.__license__
+    assert pyproject["tool"]["poetry"]["description"] == __about__.__summary__
+    assert pyproject["tool"]["poetry"]["repository"] == __about__.__url__
     assert (
         all(
-            item in tox_poetry_installer.__authors__
+            item in __about__.__authors__
             for item in pyproject["tool"]["poetry"]["authors"]
         )
         is True
@@ -33,7 +31,7 @@ def test_metadata():
     assert (
         all(
             item in pyproject["tool"]["poetry"]["authors"]
-            for item in tox_poetry_installer.__authors__
+            for item in __about__.__authors__
         )
         is True
     )
