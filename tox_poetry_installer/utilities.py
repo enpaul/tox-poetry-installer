@@ -1,6 +1,5 @@
 """Helper utility functions, usually bridging Tox and Poetry functionality"""
 from pathlib import Path
-from typing import List
 from typing import Sequence
 from typing import Set
 
@@ -109,21 +108,22 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
     """
 
     try:
-        top_level = packages[dependency_name]
 
-        def find_deps_of_deps(name: str) -> List[PoetryPackage]:
+        def find_deps_of_deps(name: str, transients: PackageMap):
             if name in PoetryProvider.UNSAFE_PACKAGES:
                 reporter.warning(
                     f"{constants.REPORTER_PREFIX} installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
                 )
-                return []
-            transients = [packages[name]]
-            for dep in packages[name].requires:
-                transients += find_deps_of_deps(dep.name)
-            return transients
+            else:
+                transients[name] = packages[name]
+                for dep in packages[name].requires:
+                    if dep.name not in transients.keys():
+                        find_deps_of_deps(dep.name, transients)
 
-        return set(find_deps_of_deps(top_level.name))
+        transients: PackageMap = {}
+        find_deps_of_deps(packages[dependency_name].name, transients)
 
+        return set(transients.values())
     except KeyError:
         if any(
             delimiter in dependency_name
