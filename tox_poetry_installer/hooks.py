@@ -43,6 +43,12 @@ def tox_addoption(parser: ToxParser):
         help="Require all dependencies in the environment be installed using the Poetry lockfile",
     )
 
+    parser.add_testenv_attribute(
+        name="locked_deps",
+        type="line-list",
+        help="List of locked dependencies to install to the environment using the Poetry lockfile",
+    )
+
 
 @hookimpl
 def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
@@ -87,6 +93,11 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         for package in poetry.locker.locked_repository(True).packages
     }
 
+    if venv.envconfig.require_locked_deps and venv.envconfig.deps:
+        raise exceptions.LockedDepsRequiredError(
+            f"Unlocked dependencies '{venv.envconfig.deps}' specified for environment '{venv.name}' which requires locked dependencies"
+        )
+
     # Handle the installation of any locked env dependencies from the lockfile
     _install_env_dependencies(venv, poetry, package_map)
 
@@ -119,12 +130,11 @@ def _install_env_dependencies(
     :param poetry: Poetry object the packages were sourced from
     :param packages: Mapping of package names to the corresponding package object
     """
-    env_deps = utilities.sort_env_deps(venv)
 
     dependencies: List[PoetryPackage] = []
-    for dep in env_deps.locked_deps:
+    for dep in venv.envconfig.locked_deps:
         try:
-            dependencies += utilities.find_transients(packages, dep.name.lower())
+            dependencies += utilities.find_transients(packages, dep.lower())
         except exceptions.ToxPoetryInstallerException as err:
             venv.status = "lockfile installation failed"
             reporter.error(f"{constants.REPORTER_PREFIX} {err}")
@@ -148,13 +158,8 @@ def _install_env_dependencies(
         dependencies = list(set(dev_dependencies + dependencies))
 
     reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(env_deps.locked_deps)} locked env dependencies"
+        f"{constants.REPORTER_PREFIX} identified {len(dependencies)} total dependencies from {len(venv.envconfig.locked_deps)} locked env dependencies"
     )
-
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} updating env config with {len(env_deps.unlocked_deps)} unlocked env dependencies for installation using the default backend"
-    )
-    venv.envconfig.deps = env_deps.unlocked_deps
 
     reporter.verbosity0(
         f"{constants.REPORTER_PREFIX} ({venv.name}) installing {len(dependencies)} env dependencies from lockfile"

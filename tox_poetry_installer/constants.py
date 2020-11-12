@@ -17,10 +17,3 @@ PEP508_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
 # Prefix all reporter messages should include to indicate that they came from this module in the
 # console output.
 REPORTER_PREFIX = f"[{__about__.__title__}]:"
-
-# Suffix that indicates an env dependency should be treated as a locked dependency and thus be
-# installed from the lockfile. Will be automatically stripped off of a dependency name during
-# sorting so that the resulting string is just the valid package name. This becomes optional when
-# the "require_locked_deps" option is true for an environment; in that case a bare dependency like
-# 'foo' is treated the same as an explicitly locked dependency like 'foo@poetry'
-MAGIC_SUFFIX_MARKER = "@poetry"

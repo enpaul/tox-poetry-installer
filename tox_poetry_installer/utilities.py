@@ -15,58 +15,6 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer.datatypes import PackageMap
-from tox_poetry_installer.datatypes import SortedEnvDeps
-
-
-def sort_env_deps(venv: ToxVirtualEnv) -> SortedEnvDeps:
-    """Sorts the environment dependencies by lock status
-
-    Lock status determines whether a given environment dependency will be installed from the
-    lockfile using the Poetry backend, or whether this plugin will skip it and allow it to be
-    installed using the default pip-based backend (an unlocked dependency).
-
-    .. note:: A locked dependency must follow a required format. To avoid reinventing the wheel
-              (no pun intended) this module does not have any infrastructure for parsing PEP-508
-              version specifiers, and so requires locked dependencies to be specified with no
-              version (the installed version being taken from the lockfile). If a dependency is
-              specified as locked and its name is also a PEP-508 string then an error will be
-              raised.
-    """
-
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} sorting {len(venv.envconfig.deps)} env dependencies by lock requirement"
-    )
-    unlocked_deps = []
-    locked_deps = []
-
-    for dep in venv.envconfig.deps:
-        if venv.envconfig.require_locked_deps:
-            reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} lock required for env, treating '{dep.name}' as locked env dependency"
-            )
-            dep.name = dep.name.replace(constants.MAGIC_SUFFIX_MARKER, "")
-            locked_deps.append(dep)
-        else:
-            if dep.name.endswith(constants.MAGIC_SUFFIX_MARKER):
-                reporter.verbosity1(
-                    f"{constants.REPORTER_PREFIX} specification includes marker '{constants.MAGIC_SUFFIX_MARKER}', treating '{dep.name}' as locked env dependency"
-                )
-                dep.name = dep.name.replace(constants.MAGIC_SUFFIX_MARKER, "")
-                locked_deps.append(dep)
-            else:
-                reporter.verbosity1(
-                    f"{constants.REPORTER_PREFIX} specification does not include marker '{constants.MAGIC_SUFFIX_MARKER}', treating '{dep.name}' as unlocked env dependency"
-                )
-                unlocked_deps.append(dep)
-
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} identified {len(locked_deps)} locked env dependencies: {[item.name for item in locked_deps]}"
-    )
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} identified {len(unlocked_deps)} unlocked env dependencies: {[item.name for item in unlocked_deps]}"
-    )
-
-    return SortedEnvDeps(locked_deps=locked_deps, unlocked_deps=unlocked_deps)
 
 
 def install_to_venv(
