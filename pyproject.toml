@@ -9,6 +9,9 @@ packages = [
   {include = "tox_poetry_installer"},
   {include = "tests/*.py", format = "sdist"}
 ]
+include = [
+  "tox_poetry_installer/py.typed"
+]
 keywords = ["tox", "poetry", "plugin"]
 readme = "README.md"
 classifiers = [
