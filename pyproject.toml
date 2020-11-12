@@ -6,7 +6,7 @@ authors = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
 description = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
 repository = "https://github.com/enpaul/tox-poetry-installer/"
 packages = [
-  {include = "tox_poetry_installer.py"},
+  {include = "tox_poetry_installer"},
   {include = "tests/*.py", format = "sdist"}
 ]
 keywords = ["tox", "poetry", "plugin"]
