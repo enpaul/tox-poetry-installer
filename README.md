@@ -49,7 +49,7 @@ Confirm that the plugin is installed, and Tox recognizes it, by checking the Tox
 ~ $: poetry run tox --version
 3.20.0 imported from .venv/lib64/python3.8/site-packages/tox/__init__.py
 registered plugins:
-    tox-poetry-installer-0.2.2 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
+    tox-poetry-installer-0.5.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
 ```
 
 If using Pip, ensure that the plugin is installed to the same environment as Tox:
