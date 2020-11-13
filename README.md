@@ -199,11 +199,11 @@ commands = ...
   * [`indexserver`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
   * [`usedevelop`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
 
-* Tox environments automatically inherit their settings from the main `testenv` environment. This
-  means that if the `require_locked_deps = true` is specified for the `testenv` environment then
-  all environments will also require locked dependencies. This can be overwritten by explicitly
-  specifying `require_locked_deps = false` on child environments where unlocked dependencies are
-  needed.
+* Tox will not automatically detect changes to the locked dependencies and so
+  environments will not be automatically rebuilt when locked dependencies are changed.
+  When changing the locked dependencies (or their versions) the environments will need to
+  be manually rebuilt using either the `-r`/`--recreate` CLI option or the
+  `recreate = true` option in `tox.ini`.
 
 * There are a handful of packages that cannot be installed from the lockfile, whether as specific
   dependencies or as transient dependencies (dependencies of dependencies). This is due to
