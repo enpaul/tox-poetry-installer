@@ -5,6 +5,7 @@ specifically related to implementing the hooks (to keep the size/readability of 
 themselves manageable).
 """
 from typing import List
+from typing import Optional
 
 from poetry.core.packages import Package as PoetryPackage
 from poetry.factory import Factory as PoetryFactory
@@ -51,7 +52,7 @@ def tox_addoption(parser: ToxParser):
 
 
 @hookimpl
-def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
+def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional[bool]:
     """Install the dependencies for the current environment
 
     Loads the local Poetry environment and the corresponding lockfile then pulls the dependencies
@@ -69,7 +70,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} skipping isolated build env '{action.name}'"
         )
-        return
+        return None
 
     try:
         poetry = PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
@@ -82,7 +83,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} project does not use Poetry for env management, skipping installation of locked dependencies"
         )
-        return
+        return None
 
     reporter.verbosity1(
         f"{constants.REPORTER_PREFIX} loaded project pyproject.toml from {poetry.file}"
@@ -107,15 +108,17 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction):
         reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} env specifies 'skip_install = true', skipping installation of project package"
         )
-        return
+        return venv.envconfig.require_locked_deps or None
 
     if venv.envconfig.config.skipsdist:
         reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} config specifies 'skipsdist = true', skipping installation of project package"
         )
-        return
+        return venv.envconfig.require_locked_deps or None
 
     _install_project_dependencies(venv, poetry, package_map)
+
+    return venv.envconfig.require_locked_deps or None
 
 
 def _install_env_dependencies(
