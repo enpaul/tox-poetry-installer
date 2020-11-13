@@ -60,6 +60,13 @@ If using Pip, ensure that the plugin is installed to the same environment as Tox
 ~ $: /path/to/my/automation/virtualenv/bin/pip install tox-poetry-installer
 ```
 
+**Note:** While it is possible to install this plugin using Tox's
+[`requires`](https://tox.readthedocs.io/en/latest/config.html#conf-requires)
+configuration option, it is not recommended. Dependencies from the `requires` option are
+installed using the default Tox installation backend which opens up the
+[possibility of transient dependency problems](#why-would-i-use-this) in your automation
+environment.
+
 
 ## Quick Start
 
