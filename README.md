@@ -15,7 +15,10 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 
 * [Installation](#installation)
 * [Quick Start](#quick-start)
-* [Usage Examples](#usage-examples)
+* [Reference and Usage](#reference-and-usage)
+  * [Config Option Reference](#config-option-reference)
+  * [Error Reference](#error-reference)
+  * [Example Config](#example-config)
 * [Known Drawbacks and Problems](#known-drawbacks-and-problems)
 * [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Developing](#developing)
@@ -60,186 +63,129 @@ If using Pip, ensure that the plugin is installed to the same environment as Tox
 
 ## Quick Start
 
-To require a Tox environment install all it's dependencies from the Poetry lockfile, add the
-`require_locked_deps = true` option to the environment configuration and remove all version
-specifiers from the dependency list. The versions to install will be taken from the lockfile
-directly:
+To add dependencies from the lockfile to a Tox environment, add the option `locked_deps`
+to the environment configuration and list names of dependencies (with no version
+specifier) under it:
 
 ```ini
 [testenv]
-description = Run the tests
-require_locked_deps = true
-deps =
-    pytest
-    pytest-cov
+description = Some very cool tests
+locked_deps =
     black
     pylint
     mypy
 commands = ...
 ```
 
-To require specific dependencies be installed from the Poetry lockfile, and let the rest be
-installed using the default Tox installation backend, add the suffix `@poetry` to the dependencies.
-In the example below the `pytest`, `pytest-cov`, and `black` dependencies will be installed from
-the lockfile while `pylint` and `mypy` will be installed using the versions specified here:
+The standard `deps` option can be used in parallel with the `locked_deps` option to
+install unlocked dependencies (dependencies not in the lockfile) alongside locked
+dependencies:
 
 ```ini
 [testenv]
-description = Run the tests
-require_locked_deps = true
+description = Some very cool tests
+locked_deps =
+    black
+    pylint
+    mypy
 deps =
-    pytest@poetry
-    pytest-cov@poetry
-    black@poetry
-    pylint >=2.5.0
-    mypy == 0.770
+    pytest == 6.1.1
+    pytest-cov >= 2.10, <2.11
 commands = ...
 ```
 
 Alternatively, to quickly install all Poetry dev-dependencies to a Tox environment, add the
-`install_dev_deps =  true` option to the environment configuration. This option can be used either
-with the `require_locked_deps = true` option or without it
+`install_dev_deps =  true` option to the environment configuration.
 
 **Note:** Regardless of the settings outlined above, all dependencies of the project package (the
 one Tox is testing) will always be installed from the lockfile.
 
 
-## Usage Examples
+## Reference and Usage
 
-After installing the plugin to a project your Tox automation is already benefiting from the
-lockfile: when Tox installs your project package to one of your environments, all the dependencies
-of your project package will be installed using the versions specified in the lockfile. This
-happens automatically and requires no configuration changes.
+### Config Option Reference
 
-But what about the rest of your Tox environment dependencies?
+All options listed below are Tox environment options and can be applied to one or more
+environment sections of the `tox.ini` file. They cannot be applied to the global Tox
+configuration section.
 
-Let's use an example `tox.ini` file, below, that defines two environments: the main `testenv` for
-running the project tests and `testenv:check` for running some other helpful tools:
+**NOTE:** Environment settings applied to the main `testenv` environment will be
+inherited by child environments (i.e. `testenv:foo`) unless they are explicitly
+overridden by the child environment's configuration.
+
+| Option                | Type            | Default | Usage                                          |
+|:----------------------|:----------------|:--------|:-----------------------------------------------|
+| `locked_deps`         | Multi-line list | `[]`    | Names of packages in the Poetry lockfile to install to the Tox environment. All dependencies specified here (and their dependencies) will be installed to the Tox environment using the version the Poetry lockfile specifies for them. |
+| `require_locked_deps` | Bool            | `false` | Indicates whether the environment should allow unlocked dependencies (dependencies not in the Poetry lockfile) to be installed alongside locked dependencies. If `true` then installation of unlocked dependencies will be blocked and an error will be raised if the `deps` option specifies any values. |
+| `install_dev_deps`    | Bool            | `false` | Indicates whether all Poetry development dependencies should be installed to the environment. Provides a quick and easy way to install all dev-dependencies without needing to specify them individually. |
+
+### Error Reference
+
+* `LockedDepVersionConflictError` - Indicates that a locked dependency included a PEP-508 version
+  specifier (i.e. `pytest >=6.0, <6.1`). Locked dependencies always take their version from the
+  Poetry lockfile so specifying a specific version for a locked dependency is not supported.
+* `LockedDepNotFoundError` - Indicates that a locked dependency could not be found in the Poetry
+  lockfile. This can be solved by [adding the dependency using Poetry](https://python-poetry.org/docs/cli/#add).
+* `ExtraNotFoundError` - Indicates that the Tox `extras` option specified a project extra that
+  Poetry does not know about. This may be due to a misconfigured `pyproject.toml` or out of date
+  lockfile.
+* `LockedDepsRequiredError` - Indicates that an environment with `require_locked_deps = true` also
+  specified unlocked dependencies using Tox's `deps` option. This can be solved by either setting
+  `require_locked_deps = false` (the default) or removing the `deps` option from the environment
+  configuration.
+
+### Example Config
 
 ```ini
 [tox]
-envlist = py37, static
+envlist = py, foo, bar, baz
 isolated_build = true
 
+# The base testenv will always use locked dependencies and only ever installs the project package
+# (and its dependencies) and the two pytest dependencies listed below
 [testenv]
-description = Run the tests
-deps =
-    pytest == 5.3.0
-commands = ...
-
-[testenv:check]
-description = Static formatting and quality enforcement
-deps =
-    pylint >=2.4.4,<2.6.0
-    mypy == 0.770
-    black --pre
-commands = ...
-```
-
-Let's focus on the `testenv:check` environment first. In this project there's no reason that any
-of these tools should be a different version than what a human developer is using when installing
-from the lockfile. We can require that these dependencies be installed from the lockfile by adding
-the option `require_locked_deps = true` to the environment config, but this will cause an error:
-
-```ini
-[testenv:check]
-description = Static formatting and quality enforcement
+description = Some very cool tests
 require_locked_deps = true
-deps =
-    pylint >=2.4.4,<2.6.0
-    mypy == 0.770
-    black --pre
+locked_deps =
+    pytest
+    pytest-cov
 commands = ...
-```
 
-Running Tox using this config gives us this error:
-
-```
-tox_poetry_installer.LockedDepVersionConflictError: Locked dependency 'pylint >=2.4.4,<2.6.0' cannot include version specifier
-```
-
-This is because we told the Tox environment to require all dependencies be locked, but then also
-specified a specific version constraint for Pylint. With the `require_locked_deps = true` setting
-Tox expects all dependencies to take their version from the lockfile, so when it gets conflicting
-information it errors. We can fix this by simply removing all version specifiers from the
-environment dependency list:
-
-```ini
-[testenv:check]
-description = Static formatting and quality enforcement
+# This environment also requires locked dependencies, but the "skip_install" setting means that
+# the project dependencies will not be installed to the environment from the lockfile
+[testenv:foo]
+description = FOObarbaz
+skip_install = true
 require_locked_deps = true
-deps =
-    pylint
+locked_deps =
+    requests
+    toml
+    ruamel.yaml
+commands = ...
+
+# This environment allows unlocked dependencies to be installed ad-hoc. Below, the "mypy" and
+# "pylint" dependencies (and their dependencies) will be installed from the Poetry lockfile but the
+# "black" dependency will be installed using the default Tox backend. Note, this environment does
+# not specify "require_locked_deps = true" to allow the unlocked "black" dependency without raising
+# an error.
+[testenv:bar]
+description = fooBARbaz
+locked_deps =
     mypy
+    pylint
+deps =
     black
 commands = ...
-```
 
-Now all the dependencies will be installed from the lockfile. If Poetry updates the lockfile with
-a new version then that updated version will be automatically installed when the Tox environment is
-recreated.
-
-Now let's look at the `testenv` environment. Let's make the same changes to the `testenv`
-environment that we made to `testenv:check` above; remove the PyTest version and add
-`require_locked_deps = true`. Then imagine that we want to add the
-[Requests](https://requests.readthedocs.io/en/master/) library to the test environment: we
-can add `requests` as a dependency of the test environment, but this will cause an error:
-
-```ini
-[testenv]
-description = Run the tests
+# This environment requires locked dependencies but does not specify any. Instead it specifies the
+# "install_dev_deps = true" option which will cause all of the Poetry dev-dependencies to be
+# installed from the lockfile.
+[testenv:baz]
+description = foobarBAZ
+install_dev_deps = true
 require_locked_deps = true
-deps =
-    pytest
-    requests
 commands = ...
 ```
-
-Running Tox with this config gives us this error:
-
-```
-tox_poetry_installer.LockedDepNotFoundError: No version of locked dependency 'requests' found in the project lockfile
-```
-
-This is because `requests` is not in our lockfile yet. Tox will refuse to install a dependency
-that isn't in the lockfile to an an environment that specifies `require_locked_deps = true`. We
-can fix this by running `poetry add requests --dev` to add it to the lockfile.
-
-Now let's combine dependencies from the lockfile with dependencies that are
-specified in-line in the Tox environment configuration.
-[This isn't generally recommended](#why-would-i-use-this), but it is a valid use case and
-fully supported by this plugin. Let's modify the `testenv` configuration to install PyTest
-from the lockfile but then install an older version of the Requests library.
-
-The first thing to do is remove the `require_locked_deps = true` setting so that we can install
-Requests as an unlocked dependency. Then we can add our version specifier to the `requests`
-entry in the dependency list:
-
-```ini
-[testenv]
-description = Run the tests
-deps =
-    pytest
-    requests >=2.2.0,<2.10.0
-commands = ...
-```
-
-However we still want `pytest` to be installed from the lockfile, so the final step is to tell Tox
-to install it from the lockfile by adding the suffix `@poetry` to the `pytest` entry in the
-dependency list:
-
-```ini
-[testenv]
-description = Run the tests
-deps =
-    pytest@poetry
-    requests >=2.2.0,<2.10.0
-commands = ...
-```
-
-Now when the `testenv` environment is created it will install PyTest (and all of its dependencies)
-from the lockfile while it will install Requests (and all of its dependencies) using the default
-Tox installation backend.
 
 
 ## Known Drawbacks and Problems
@@ -253,11 +199,11 @@ Tox installation backend.
   * [`indexserver`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
   * [`usedevelop`](https://tox.readthedocs.io/en/latest/config.html#conf-indexserver)
 
-* Tox environments automatically inherit their settings from the main `testenv` environment. This
-  means that if the `require_locked_deps = true` is specified for the `testenv` environment then
-  all environments will also require locked dependencies. This can be overwritten by explicitly
-  specifying `require_locked_deps = false` on child environments where unlocked dependencies are
-  needed.
+* Tox will not automatically detect changes to the locked dependencies and so
+  environments will not be automatically rebuilt when locked dependencies are changed.
+  When changing the locked dependencies (or their versions) the environments will need to
+  be manually rebuilt using either the `-r`/`--recreate` CLI option or the
+  `recreate = true` option in `tox.ini`.
 
 * There are a handful of packages that cannot be installed from the lockfile, whether as specific
   dependencies or as transient dependencies (dependencies of dependencies). This is due to
@@ -372,7 +318,7 @@ dependencies:
 [testenv]
 description = Some very cool tests
 require_locked_deps = true
-deps =
+locked_deps =
     foo
     bar
     baz
