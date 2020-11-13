@@ -8,6 +8,7 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
    +-- LockedDepVersionConflictError
    +-- LockedDepNotFoundError
    +-- ExtraNotFoundError
+   +-- LockedDepsRequiredError
 
 """
 
