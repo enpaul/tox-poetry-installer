@@ -4,12 +4,14 @@ from typing import Sequence
 from typing import Set
 
 from poetry.core.packages import Package as PoetryPackage
+from poetry.factory import Factory as PoetryFactory
 from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
 from poetry.io.null_io import NullIO as PoetryNullIO
 from poetry.poetry import Poetry
 from poetry.puzzle.provider import Provider as PoetryProvider
 from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
 from tox import reporter
+from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import constants
@@ -38,7 +40,7 @@ def install_to_venv(
     )
 
     for dependency in packages:
-        reporter.verbosity1(f"{constants.REPORTER_PREFIX} installing {dependency}")
+        reporter.verbosity1(f"{constants.REPORTER_PREFIX} Installing {dependency}")
         installer.install(dependency)
 
 
@@ -60,7 +62,7 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
         def find_deps_of_deps(name: str, transients: PackageMap):
             if name in PoetryProvider.UNSAFE_PACKAGES:
                 reporter.warning(
-                    f"{constants.REPORTER_PREFIX} installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
+                    f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
                 )
             else:
                 transients[name] = packages[name]
@@ -82,4 +84,27 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
             ) from None
         raise exceptions.LockedDepNotFoundError(
             f"No version of locked dependency '{dependency_name}' found in the project lockfile"
+        ) from None
+
+
+def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> Poetry:
+    """Check that the local project environment meets expectations"""
+    # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
+    # that better than we can, so let them do their thing. More to the point: if you're having
+    # problems in the packaging env that this plugin would solve, god help you.
+    if action.name == venv.envconfig.config.isolated_build_env:
+        raise exceptions.SkipEnvironment(
+            f"Skipping isolated packaging build env '{action.name}'"
+        )
+
+    try:
+        return PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
+    # Support running the plugin when the current tox project does not use Poetry for its
+    # environment/dependency management.
+    #
+    # ``RuntimeError`` is dangerous to blindly catch because it can be (and in Poetry's case,
+    # is) raised in many different places for different purposes.
+    except RuntimeError:
+        raise exceptions.SkipEnvironment(
+            "Project does not use Poetry for env management, skipping installation of locked dependencies"
         ) from None

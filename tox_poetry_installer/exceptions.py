@@ -5,6 +5,7 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
 ::
 
   ToxPoetryInstallerException
+   +-- SkipEnvironment
    +-- LockedDepVersionConflictError
    +-- LockedDepNotFoundError
    +-- ExtraNotFoundError
@@ -15,6 +16,10 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
 
 class ToxPoetryInstallerException(Exception):
     """Error while installing locked dependencies to the test environment"""
+
+
+class SkipEnvironment(ToxPoetryInstallerException):
+    """Current environment does not meet preconditions and should be skipped by the plugin"""
 
 
 class LockedDepVersionConflictError(ToxPoetryInstallerException):
