@@ -44,5 +44,5 @@ repos:
     hooks:
       - id: reorder-python-imports
         args:
-          - "--unclassifiable-application-module tox_poetry_installer"
+          - "--unclassifiable-application-module=tox_poetry_installer"
         language: system

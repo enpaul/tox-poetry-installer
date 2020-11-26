@@ -108,6 +108,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 venv, poetry, package_map
             )
         else:
+            project_deps = []
             reporter.verbosity1(
                 f"{constants.REPORTER_PREFIX} Skipping installation of project dependencies, env does not install project package"
             )
