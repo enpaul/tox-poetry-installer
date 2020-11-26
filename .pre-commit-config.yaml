@@ -1,28 +1,48 @@
 ---
+# All of the pre-commit hooks here actually use the `pytyhon` pre-commit language
+# setting. However, for the python language setting, pre-commit will create and manage
+# a cached virtual environment for each hook ID and do a bare `pip install <repo>` into
+# the venv to setup the hook. This can result in conflicting dependency versions between
+# the version installed to the pre-commit venv and the version installed to the Poetry
+# venv specified in the lockfile.
+#
+# The solution is to specify `language: system` for all hooks and then install the
+# required dependencies to the Poetry venv. The `system` language skips the isolated
+# venv creation and looks for the entrypoint specified by the hook in the global
+# environment which, if running in the Poetry venv, will find the entrypoint provided
+# by the Poetry-managed dependency.
+#
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: end-of-file-fixer
+        language: system
+      - id: fix-encoding-pragma
+        args:
+          - "--remove"
+        language: system
+      - id: trailing-whitespace
+        language: system
+      - id: check-merge-conflict
+        language: system
+
   - repo: https://github.com/psf/black
     rev: 20.8b1
     hooks:
       - id: black
-        language_version: python3
+        language: system
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: v0.5.0
+    rev: v1.8.0
     hooks:
       - id: blacken-docs
-        additional_dependencies: [black==20.8b1]
-        language_version: python3
+        language: system
 
   - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.3.5
+    rev: v2.3.6
     hooks:
       - id: reorder-python-imports
-        language_version: python3
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.0.0
-    hooks:
-      - id: end-of-file-fixer
-      - id: fix-encoding-pragma
-        args: [--remove]
-      - id: trailing-whitespace
+        args:
+          - "--unclassifiable-application-module tox_poetry_installer"
+        language: system
