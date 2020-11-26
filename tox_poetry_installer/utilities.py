@@ -1,9 +1,11 @@
 """Helper utility functions, usually bridging Tox and Poetry functionality"""
+import sys
 from pathlib import Path
 from typing import Sequence
 from typing import Set
 
 from poetry.core.packages import Package as PoetryPackage
+from poetry.core.semver.version import Version
 from poetry.factory import Factory as PoetryFactory
 from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
 from poetry.io.null_io import NullIO as PoetryNullIO
@@ -59,19 +61,44 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
 
     try:
 
-        def find_deps_of_deps(name: str, transients: PackageMap):
+        def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
+            package = packages[name]
+            local_version = Version(
+                major=sys.version_info.major,
+                minor=sys.version_info.minor,
+                patch=sys.version_info.micro,
+            )
+            transients: PackageMap = {}
+            searched.update([name])
+
             if name in PoetryProvider.UNSAFE_PACKAGES:
                 reporter.warning(
                     f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
                 )
+                reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
+                )
+            elif not package.python_constraint.allows(local_version):
+                reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{local_version}'"
+                )
+            elif package.platform is not None and package.platform != sys.platform:
+                reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
+                )
             else:
-                transients[name] = packages[name]
-                for dep in packages[name].requires:
-                    if dep.name not in transients.keys():
-                        find_deps_of_deps(dep.name, transients)
+                reporter.verbosity2(f"{constants.REPORTER_PREFIX} Include {package}")
+                transients[name] = package
+                for dep in package.requires:
+                    if dep.name not in searched:
+                        transients.update(find_deps_of_deps(dep.name, searched))
 
-        transients: PackageMap = {}
-        find_deps_of_deps(packages[dependency_name].name, transients)
+            return transients
+
+        searched: Set[str] = set()
+        transients: PackageMap = find_deps_of_deps(
+            packages[dependency_name].name, searched
+        )
 
         return set(transients.values())
     except KeyError:
