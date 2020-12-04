@@ -8,7 +8,6 @@ from typing import List
 from typing import Optional
 
 from poetry.core.packages import Package as PoetryPackage
-from poetry.poetry import Poetry
 from tox import hookimpl
 from tox import reporter
 from tox.action import Action as ToxAction
@@ -104,7 +103,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         )
 
         if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
-            project_deps: List[PoetryPackage] = _find_project_dependencies(
+            project_deps: List[PoetryPackage] = utilities.find_project_dependencies(
                 venv, poetry, package_map
             )
         else:
@@ -127,39 +126,3 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
     utilities.install_to_venv(poetry, venv, dependencies)
 
     return venv.envconfig.require_locked_deps or None
-
-
-def _find_project_dependencies(
-    venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
-) -> List[PoetryPackage]:
-    """Install the dependencies of the project package
-
-    Install all primary dependencies of the project package.
-
-    :param venv: Tox virtual environment to install the packages to
-    :param poetry: Poetry object the packages were sourced from
-    :param packages: Mapping of package names to the corresponding package object
-    """
-
-    base_dependencies: List[PoetryPackage] = [
-        packages[item.name]
-        for item in poetry.package.requires
-        if not item.is_optional()
-    ]
-
-    extra_dependencies: List[PoetryPackage] = []
-    for extra in venv.envconfig.extras:
-        try:
-            extra_dependencies += [
-                packages[item.name] for item in poetry.package.extras[extra]
-            ]
-        except KeyError:
-            raise exceptions.ExtraNotFoundError(
-                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
-            ) from None
-
-    dependencies: List[PoetryPackage] = []
-    for dep in base_dependencies + extra_dependencies:
-        dependencies += utilities.find_transients(packages, dep.name.lower())
-
-    return dependencies

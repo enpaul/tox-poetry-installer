@@ -1,6 +1,7 @@
 """Helper utility functions, usually bridging Tox and Poetry functionality"""
 import sys
 from pathlib import Path
+from typing import List
 from typing import Sequence
 from typing import Set
 
@@ -135,3 +136,39 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> Poetry:
         raise exceptions.SkipEnvironment(
             "Project does not use Poetry for env management, skipping installation of locked dependencies"
         ) from None
+
+
+def find_project_dependencies(
+    venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
+) -> List[PoetryPackage]:
+    """Install the dependencies of the project package
+
+    Install all primary dependencies of the project package.
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
+
+    base_dependencies: List[PoetryPackage] = [
+        packages[item.name]
+        for item in poetry.package.requires
+        if not item.is_optional()
+    ]
+
+    extra_dependencies: List[PoetryPackage] = []
+    for extra in venv.envconfig.extras:
+        try:
+            extra_dependencies += [
+                packages[item.name] for item in poetry.package.extras[extra]
+            ]
+        except KeyError:
+            raise exceptions.ExtraNotFoundError(
+                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
+            ) from None
+
+    dependencies: List[PoetryPackage] = []
+    for dep in base_dependencies + extra_dependencies:
+        dependencies += find_transients(packages, dep.name.lower())
+
+    return dependencies
