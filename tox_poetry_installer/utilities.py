@@ -6,7 +6,6 @@ from typing import Sequence
 from typing import Set
 
 from poetry.core.packages import Package as PoetryPackage
-from poetry.core.semver.version import Version
 from poetry.factory import Factory as PoetryFactory
 from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
 from poetry.io.null_io import NullIO as PoetryNullIO
@@ -64,11 +63,6 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
 
         def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
             package = packages[name]
-            local_version = Version(
-                major=sys.version_info.major,
-                minor=sys.version_info.minor,
-                patch=sys.version_info.micro,
-            )
             transients: PackageMap = {}
             searched.update([name])
 
@@ -79,9 +73,9 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
                 reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
                 )
-            elif not package.python_constraint.allows(local_version):
+            elif not package.python_constraint.allows(constants.PLATFORM_VERSION):
                 reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{local_version}'"
+                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
                 )
             elif package.platform is not None and package.platform != sys.platform:
                 reporter.verbosity2(
