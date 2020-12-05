@@ -6,22 +6,23 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 ⚠️ **This project is alpha software and should not be used in production environments** ⚠️
 
 [![ci-status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
-[![license](https://img.shields.io/pypi/l/tox-poetry-installer)](https://opensource.org/licenses/MIT)
 [![pypi-version](https://img.shields.io/pypi/v/tox-poetry-installer)](https://pypi.org/project/tox-poetry-installer/)
+[![pypi-downloads](https://img.shields.io/pypi/dm/tox-poetry-installer)](https://libraries.io/pypi/tox-poetry-installer)
+[![license](https://img.shields.io/pypi/l/tox-poetry-installer)](https://opensource.org/licenses/MIT)
 [![python-versions](https://img.shields.io/pypi/pyversions/tox-poetry-installer)](https://www.python.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 **Documentation**
 
-* [Installation](#installation)
-* [Quick Start](#quick-start)
-* [Plugin Usage](#reference-and-usage)
+* [Introduction](#introduction)
+  * [Install](#install)
+  * [Quick Start](#quick-start)
+  * [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Reference](#reference)
   * [Configuration Options](#configuration-options)
   * [Command-line Arguments](#command-line-arguments)
   * [Errors](#errors)
   * [Advanced Usage](#advanced-usage)
-* [Why would I use this?](#why-would-i-use-this) (What problems does this solve?)
 * [Developing](#developing)
 * [Contributing](#contributing)
 * [Roadmap](#roadmap)
@@ -38,44 +39,88 @@ Similar projects:
 * [Poetry Tox Plugin](https://github.com/tkukushkin/tox-poetry)
 
 
-## Installation
+## Introduction
 
-Add the plugin as a development dependency of a Poetry project:
+This is a plugin to unify two great projects in the Python ecosystem: the
+[Tox](https://tox.readthedocs.io/en/latest/) automation project and the
+[Poetry](https://python-poetry.org) project/dependency manager. Specifically it allows
+the repeatable dependency resolution and installation tools that Poetry uses to benefit
+the isolated environments that Tox uses to run automated tests. The motivation to write
+this plugin came from a need for a single source of truth for the versions of all
+packages that should be installed to an environment.
 
+When in use this plugin will allow a Tox environment to install its required
+dependencies using the versions specified in the Poetry lockfile. This eliminates
+needing to specify package versions in multiple places as well as ensures that the Tox
+environment has the exact same versions of a given package as the Poetry environment.
+This reduces (or hopefully eliminates) hard to debug problems caused by subtle
+differences in the dependency graph of the active development environment (the one managed
+by Poetry) and the automated test environment(s) created by Tox.
+
+To learn more about the problems this plugin aims to solve jump ahead to
+[What problems does this solve?](#what-problems-does-this-solve).
+Otherwise keep reading to get started.
+
+### Install
+
+The recommended way to install the plugin is to add it to a project's `pyproject.toml`
+and lockfile using Poetry:
+
+```bash
+poetry add tox-poetry-installer[poetry] --dev
 ```
-~ $: poetry add tox-poetry-installer --dev
+
+**WARNING:** The below installation methods are vulnerable to the
+[transient dependency issues this plugin aims to avoid](#why-would-i-use-this). It is
+always recommended to install dependencies using Poetry whenever possible.
+
+The plugin can also be installed with pip directly, though it is recommended to always
+install to a virtual environment and pin to a specific version:
+
+```bash
+source my-venv/bi/activate
+pip install tox-poetry-installer[poetry] == 0.6.0
 ```
 
-Confirm that the plugin is installed, and Tox recognizes it, by checking the Tox version:
+The plugin can also be installed using the Tox
+[`requires`]((https://tox.readthedocs.io/en/latest/config.html#conf-requires))
+configuration option. Note however that dependencies installed via the `requires` option
+are not handled by the plugin and will be installed the same way as a `pip install ...`
+above. For this reason it is also recommended to always pin to a specific version when
+using this installation method:
+
+```ini
+# tox.ini
+[tox]
+requires
+    tox-poetry-installer[poetry] == 0.6.0
+```
+
+Check that the plugin is registered by checking the Tox version:
 
 ```
 ~ $: poetry run tox --version
 3.20.0 imported from .venv/lib64/python3.8/site-packages/tox/__init__.py
 registered plugins:
-    tox-poetry-installer-0.5.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
+    tox-poetry-installer-0.6.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
 ```
 
-If using Pip, ensure that the plugin is installed to the same environment as Tox:
+**NOTE:** Installing the `tox-poetry-installer[poetry]` extra will add the `poetry`
+package as a managed environment dependency which can cause problems when the Poetry
+installation is externally managed (such as in a CI or container environment). See
+[Advanced Usage](#installing-alongside-an-existing-poetry-installation) for more
+information on this use case.
 
-```
-# Calling the virtualenv's 'pip' binary directly will cause pip to install to that virtualenv
-~ $: /path/to/my/automation/virtualenv/bin/pip install tox
-~ $: /path/to/my/automation/virtualenv/bin/pip install tox-poetry-installer
-```
+### Quick Start
 
-**Note:** While it is possible to install this plugin using Tox's
-[`requires`](https://tox.readthedocs.io/en/latest/config.html#conf-requires)
-configuration option, it is not recommended. Dependencies from the `requires` option are
-installed using the default Tox installation backend which opens up the
-[possibility of transient dependency problems](#why-would-i-use-this) in your automation
-environment.
+Before making any changes to `tox.ini` the project is already benefiting from having
+the plugin installed: all dependencies of the root project package are installed using
+the Poetry backend to all Tox environments that install the root package without any
+configuration changes.
 
-
-## Quick Start
-
-To add dependencies from the lockfile to a Tox environment, add the option `locked_deps`
-to the environment configuration and list names of dependencies (with no version
-specifier) under it:
+To add dependencies from the lockfile to a Tox environment, add the option
+[`locked_deps`](#locked_deps) to the environment configuration and list names of
+dependencies (with no version specifier) under it:
 
 ```ini
 [testenv]
@@ -87,9 +132,9 @@ locked_deps =
 commands = ...
 ```
 
-The standard `deps` option can be used in parallel with the `locked_deps` option to
-install unlocked dependencies (dependencies not in the lockfile) alongside locked
-dependencies:
+The standard [`deps`](https://tox.readthedocs.io/en/latest/config.html#conf-deps) option
+can be used in parallel with the `locked_deps` option to install unlocked dependencies
+(dependencies not in the lockfile) alongside locked dependencies:
 
 ```ini
 [testenv]
@@ -105,10 +150,105 @@ commands = ...
 ```
 
 Alternatively, to quickly install all Poetry dev-dependencies to a Tox environment, add the
-`install_dev_deps =  true` option to the environment configuration.
+[`install_dev_deps`](#install_dev_deps) option to the environment configuration:
 
-**Note:** Regardless of the settings outlined above, all dependencies of the project package (the
-one Tox is testing) will always be installed from the lockfile.
+```ini
+[testenv]
+description = Some very cool tests
+install_dev_deps = true
+```
+
+See the [Plugin Usage](#plugin-usage) section for more details on available
+configuration options and the [Advanced Usage](#advanced-usage) section for some
+unusual use cases.
+
+### Why would I use this?
+
+**The Problem**
+
+By default Tox uses [Pip](https://docs.python.org/3/tutorial/venv.html) to install the
+[PEP-508](https://www.python.org/dev/peps/pep-0508/) compliant dependencies to a test
+environment. This plugin extends the default Tox dependency installation behavior to
+support installing dependencies using a Poetry-based installation method that makes use
+of the dependency metadata from Poetry's lockfile.
+
+Environment dependencies for a Tox environment are usually specified in PEP-508 format, like
+the below example:
+
+```ini
+[testenv]
+description = Some very cool tests
+deps =
+    foo == 1.2.3
+    bar >=1.3,<2.0
+    baz
+```
+
+Let's assume these dependencies are also useful during development, so they can be added to the
+Poetry environment using this command:
+
+ ```
+ poetry add --dev \
+    foo==1.2.3 \
+    bar>=1.3,<2.0 \
+    baz
+ ```
+
+ However there is a potential problem that could arise from each of these environment
+ dependencies that would _only_ appear in the Tox environment and not in the Poetry
+ environment in use by a developer:
+
+ * **The `foo` dependency is pinned to a specific version:** let's imagine a security
+   vulnerability is discovered in `foo` and the maintainers release version `1.2.4` to fix
+   it. A developer can run `poetry remove foo` and then `poetry add foo^1.2` to get the new
+   version, but the Tox environment is left unchanged. The development environment, as defined by
+   the lockfile, is now patched against the vulnerability but the Tox environment is not.
+
+* **The `bar` dependency specifies a dynamic range:** a dynamic range allows a range of
+  versions to be installed, but the lockfile will have an exact version specified so that
+  the Poetry environment is reproducible; this allows versions to be updated with
+  `poetry update` rather than with the `remove` and `add` commands used above. If the
+  maintainers of `bar` release version `1.6.0` then the Tox environment will install it
+  because it is valid for the specified version range. Meanwhile the Poetry environment will
+  continue to install the version from the lockfile until `poetry update bar` explicitly
+  updates it. The development environment is now has a different version of `bar` than the Tox
+  environment.
+
+* **The `baz` dependency is unpinned:** unpinned dependencies are
+  [generally a bad idea](https://python-poetry.org/docs/faq/#why-are-unbound-version-constraints-a-bad-idea),
+  but here it can cause real problems. Poetry will interpret an unbound dependency using
+  [the carrot requirement](https://python-poetry.org/docs/dependency-specification/#caret-requirements)
+  but Pip (via Tox) will interpret it as a wildcard. If the latest version of `baz` is `1.0.0`
+  then `poetry add baz` will result in a constraint of `baz>=1.0.0,<2.0.0` while the Tox
+  environment will have a constraint of `baz==*`. The Tox environment can now install an
+  incompatible version of `baz` and any errors that causes cannot be replicated using `poetry update`.
+
+All of these problems can apply not only to the dependencies specified for a Tox environment,
+but also to the dependencies of those dependencies, those dependencies' dependencies, and so on.
+
+**The Solution**
+
+This plugin allows dependencies specified in Tox environment take their version directly from
+the Poetry lockfile without needing an independent version to be specified in the Tox
+environment configuration. The modified version of the example environment given below appears
+less stable than the one presented above because it does not specify any versions for its
+dependencies:
+
+```ini
+[testenv]
+description = Some very cool tests
+require_locked_deps = true
+locked_deps =
+    foo
+    bar
+    baz
+```
+
+However with the `tox-poetry-installer` plugin installed Tox will install these
+dependencies from the Poetry lockfile so that the version installed to the Tox
+environment exactly matches the version Poetry is managing. When `poetry update` updates
+the lockfile with new versions of these dependencies, Tox will automatically install
+these new versions without needing any changes to the configuration.
 
 
 ## Reference
@@ -335,126 +475,6 @@ python -c '\
 
 **NOTE:** To force Tox to fail if Poetry is not installed, run the `tox` command with
 the [`--require-poetry`](#--require-poetry) option.
-
-
-## Why would I use this?
-
-**Introduction**
-
-The lockfile is a file generated by a package manager for a project that records what
-dependencies are installed, the versions of those dependencies, and any additional metadata that
-the package manager needs to recreate the local project environment. This allows developers
-to have confidence that a bug they are encountering that may be caused by one of their
-dependencies will be reproducible on another device. In addition, installing a project
-environment from a lockfile gives confidence that automated systems running tests or performing
-builds are using the same environment as a developer.
-
-[Poetry](https://python-poetry.org/) is a project dependency manager for Python projects, and
-so it creates and manages a lockfile so that its users can benefit from all the features
-described above. [Tox](https://tox.readthedocs.io/en/latest/#what-is-tox) is an automation tool
-that allows Python developers to run tests suites, perform builds, and automate tasks within
-self-contained [Python virtual environments](https://docs.python.org/3/tutorial/venv.html).
-To make these environments useful Tox supports installing dependencies in each environment.
-However, since these environments are created on the fly and Tox does not maintain a lockfile,
-there can be subtle differences between the dependencies a developer is using and the
-dependencies Tox uses.
-
-This is where this plugin comes into play.
-
-By default Tox uses [Pip](https://docs.python.org/3/tutorial/venv.html) to install the
-PEP-508 compliant dependencies to a test environment. This plugin extends the default
-Tox dependency installation behavior to support installing dependencies using a Poetry-based
-installation method that makes use of the dependency metadata from Poetry's lockfile.
-
-**The Problem**
-
-Environment dependencies for a Tox environment are usually specified in PEP-508 format, like
-the below example:
-
-```ini
-# from tox.ini
-...
-
-[testenv]
-description = Some very cool tests
-deps =
-    foo == 1.2.3
-    bar >=1.3,<2.0
-    baz
-
-...
-```
-
-Let's assume these dependencies are also useful during development, so they can be added to the
-Poetry environment using this command:
-
- ```
- poetry add --dev \
-    foo==1.2.3 \
-    bar>=1.3,<2.0 \
-    baz
- ```
-
- However there is a potential problem that could arise from each of these environment
- dependencies that would _only_ appear in the Tox environment and not in the Poetry
- environment in use by a developer:
-
- * **The `foo` dependency is pinned to a specific version:** let's imagine a security
-   vulnerability is discovered in `foo` and the maintainers release version `1.2.4` to fix
-   it. A developer can run `poetry remove foo` and then `poetry add foo^1.2` to get the new
-   version, but the Tox environment is left unchanged. The development environment, as defined by
-   the lockfile, is now patched against the vulnerability but the Tox environment is not.
-
-* **The `bar` dependency specifies a dynamic range:** a dynamic range allows a range of
-  versions to be installed, but the lockfile will have an exact version specified so that
-  the Poetry environment is reproducible; this allows versions to be updated with
-  `poetry update` rather than with the `remove` and `add` commands used above. If the
-  maintainers of `bar` release version `1.6.0` then the Tox environment will install it
-  because it is valid for the specified version range. Meanwhile the Poetry environment will
-  continue to install the version from the lockfile until `poetry update bar` explicitly
-  updates it. The development environment is now has a different version of `bar` than the Tox
-  environment.
-
-* **The `baz` dependency is unpinned:** unpinned dependencies are
-  [generally a bad idea](https://python-poetry.org/docs/faq/#why-are-unbound-version-constraints-a-bad-idea),
-  but here it can cause real problems. Poetry will interpret an unbound dependency using
-  [the carrot requirement](https://python-poetry.org/docs/dependency-specification/#caret-requirements)
-  but Pip (via Tox) will interpret it as a wildcard. If the latest version of `baz` is `1.0.0`
-  then `poetry add baz` will result in a constraint of `baz>=1.0.0,<2.0.0` while the Tox
-  environment will have a constraint of `baz==*`. The Tox environment can now install an
-  incompatible version of `baz` and any errors that causes cannot be replicated using `poetry update`.
-
-All of these problems can apply not only to the dependencies specified for a Tox environment,
-but also to the dependencies of those dependencies, those dependencies' dependencies, and so on.
-
-**The Solution**
-
-This plugin allows dependencies specified in Tox environment take their version directly from
-the Poetry lockfile without needing an independent version to be specified in the Tox
-environment configuration. The modified version of the example environment given below appears
-less stable than the one presented above because it does not specify any versions for its
-dependencies:
-
-```ini
-# from tox.ini
-...
-
-[testenv]
-description = Some very cool tests
-require_locked_deps = true
-locked_deps =
-    foo
-    bar
-    baz
-
-...
-```
-
-However with the `tox-poetry-installer` plugin installed the `require_locked_deps = true`
-setting means that Tox will install these dependencies from the Poetry lockfile so that the
-version installed to the Tox environment exactly matches the version Poetry is managing. When
-`poetry update` updates the lockfile with new versions of these dependencies, Tox will
-automatically install these new versions without needing any changes to the configuration.
 
 
 ## Developing
