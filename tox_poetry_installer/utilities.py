@@ -114,8 +114,6 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
     """Check that the local project environment meets expectations"""
-    from tox_poetry_installer import _poetry
-
     # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
     # that better than we can, so let them do their thing. More to the point: if you're having
     # problems in the packaging env that this plugin would solve, god help you.
@@ -123,6 +121,8 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
         raise exceptions.SkipEnvironment(
             f"Skipping isolated packaging build env '{action.name}'"
         )
+
+    from tox_poetry_installer import _poetry
 
     try:
         return _poetry.Factory().create_poetry(venv.envconfig.config.toxinidir)
