@@ -29,6 +29,13 @@ def tox_addoption(parser: ToxParser):
     dependencies should be treated as locked or not.
     """
 
+    parser.add_argument(
+        "--require-poetry",
+        action="store_true",
+        dest="require_poetry",
+        help="Trigger a failure if Poetry is not available to Tox",
+    )
+
     parser.add_testenv_attribute(
         name="install_dev_deps",
         type="bool",
@@ -65,6 +72,13 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
     try:
         poetry = utilities.check_preconditions(venv, action)
     except exceptions.SkipEnvironment as err:
+        if (
+            isinstance(err, exceptions.PoetryNotInstalledError)
+            and venv.envconfig.config.option.require_poetry
+        ):
+            venv.status = err.__class__.__name__
+            reporter.error(str(err))
+            return False
         reporter.verbosity1(str(err))
         return None
 
