@@ -157,6 +157,9 @@ def find_project_dependencies(
 
     extra_dependencies: List[PoetryPackage] = []
     for extra in venv.envconfig.extras:
+        reporter.verbosity1(
+            f"{constants.REPORTER_PREFIX} Processing project extra '{extra}'"
+        )
         try:
             extra_dependencies += [
                 packages[item.name] for item in poetry.package.extras[extra]
