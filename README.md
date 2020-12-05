@@ -58,7 +58,7 @@ differences in the dependency graph of the active development environment (the o
 by Poetry) and the automated test environment(s) created by Tox.
 
 To learn more about the problems this plugin aims to solve jump ahead to
-[What problems does this solve?](#what-problems-does-this-solve).
+[What problems does this solve?](#why-would-i-use-this).
 Otherwise keep reading to get started.
 
 ### Install
@@ -158,7 +158,7 @@ description = Some very cool tests
 install_dev_deps = true
 ```
 
-See the [Plugin Usage](#plugin-usage) section for more details on available
+See the [Reference](#reference) section for more details on available
 configuration options and the [Advanced Usage](#advanced-usage) section for some
 unusual use cases.
 
@@ -166,11 +166,10 @@ unusual use cases.
 
 **The Problem**
 
-By default Tox uses [Pip](https://docs.python.org/3/tutorial/venv.html) to install the
-[PEP-508](https://www.python.org/dev/peps/pep-0508/) compliant dependencies to a test
-environment. This plugin extends the default Tox dependency installation behavior to
-support installing dependencies using a Poetry-based installation method that makes use
-of the dependency metadata from Poetry's lockfile.
+By default Tox uses Pip to install the [PEP-508](https://www.python.org/dev/peps/pep-0508/)
+compliant dependencies to a test environment. This plugin extends the default Tox
+dependency installation behavior to support installing dependencies using a Poetry-based
+installation method that makes use of the dependency metadata from Poetry's lockfile.
 
 Environment dependencies for a Tox environment are usually specified in PEP-508 format, like
 the below example:
@@ -292,8 +291,8 @@ hook.
 
 Whether all Poetry dev-dependencies should be installed to the environment. If `true`
 then all dependencies specified in the
-[`dev-dependencies` section](https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies)
-of `pyproject.toml` will be installed automatically.
+[`dev-dependencies`](https://python-poetry.org/docs/pyproject/#dependencies-and-dev-dependencies)
+section of `pyproject.toml` will be installed automatically.
 
 ### Command-line Arguments
 
@@ -306,7 +305,7 @@ Indicates that Poetry is expected to be available to Tox and, if it is not, then
 run should fail. If provided and the `poetry` package is not installed to the same
 environment as the `tox` package then Tox will fail.
 
-**NOTE:** See [Advanced Usage](installing-alongside-an-existing-poetry-installation)
+**NOTE:** See [Advanced Usage](#installing-alongside-an-existing-poetry-installation)
 for more information.
 
 ### Errors
@@ -330,7 +329,7 @@ lockfile with the `pyproject.toml` run one of
   * Install Poetry: ensure that `poetry` is installed to the same environment as `tox`.
   * Skip running the plugin: remove the `--require-poetry` flag from the runtime options.
 
-**NOTE:** See [Advanced Usage](installing-alongside-an-existing-poetry-installation)
+**NOTE:** See [Advanced Usage](#installing-alongside-an-existing-poetry-installation)
 for more information.
 
 #### Locked Dependency Version Conflict Error
@@ -352,9 +351,8 @@ for more information.
 * **Cause:** Indicates that a dependency specified in the [`locked_deps`](#locked_deps)
   configuration option in `tox.ini` could not be found in the Poetry lockfile.
 * **Resolution options:**
-  * Add the dependency to the lockfile: run `poetry add <dependency>`;
-    see [the Poetry documentation](https://python-poetry.org/docs/cli/#add) for more
-    information.
+  * Add the dependency to the lockfile: run
+    [`poetry add <dependency>`](https://python-poetry.org/docs/cli/#add).
   * Do not install the dependency: remove the item from the `locked_deps` list in
     `tox.ini`.
 
@@ -366,9 +364,9 @@ for more information.
   `pyproject.toml`
 * **Resolution options:**
   * Configure the extra: add a section for the named extra to the
-    [`extras` section of `pyproject.toml`](https://python-poetry.org/docs/pyproject/#extras)
-    and optionally assign dependencies to the named extra using the
-    [`--optional` dependency setting](https://python-poetry.org/docs/cli/#options_3).
+    [`extras`](https://python-poetry.org/docs/pyproject/#extras) section of
+    `pyproject.toml` and optionally assign dependencies to the named extra using the
+    [`--optional`](https://python-poetry.org/docs/cli/#options_3) dependency setting.
   * Remove the extra: remove the item from the `extras` list in `tox.ini`.
 
 #### Locked Dependencies Required Error
@@ -434,10 +432,10 @@ are four packages classified as "unsafe" by Poetry and excluded from the lockfil
 When one of these packages is encountered by the plugin a warning will be logged and
 _**the package will not be installed to the environment**_. If the unsafe package
 is required for the environment then it will need to be specified as an unlocked
-dependency using the [`deps`](https://github.com/python-poetry/poetry/releases/tag/1.1.4)
+dependency using the [`deps`](https://tox.readthedocs.io/en/latest/config.html#conf-deps)
 configuration option in `tox.ini`, ideally with an exact pinned version.
 
-* The set of packages excluded from the Poetry lockfile can be found at
+* The set of packages excluded from the Poetry lockfile can be found in
   [`poetry.puzzle.provider.Provider.UNSAFE_DEPENDENCIES`](https://github.com/python-poetry/poetry/blob/master/poetry/puzzle/provider.py)
 * There is an ongoing discussion of Poetry's handling of these packages at
   [python-poetry/poetry#1584](https://github.com/python-poetry/poetry/issues/1584)
