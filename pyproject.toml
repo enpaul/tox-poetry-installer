@@ -15,7 +15,7 @@ include = [
 keywords = ["tox", "poetry", "plugin"]
 readme = "README.md"
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Environment :: Plugins",
   "Framework :: tox",
   "Intended Audience :: Developers",
