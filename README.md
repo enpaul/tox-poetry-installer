@@ -3,7 +3,7 @@
 A plugin for [Tox](https://tox.readthedocs.io/en/latest/) that allows test environment
 dependencies to be installed using [Poetry](https://python-poetry.org/) from its lockfile.
 
-⚠️ **This project is alpha software and should not be used in production environments** ⚠️
+⚠️ **This project is beta software and is under active development** ⚠️
 
 [![ci-status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
 [![pypi-version](https://img.shields.io/pypi/v/tox-poetry-installer)](https://pypi.org/project/tox-poetry-installer/)
@@ -531,10 +531,10 @@ releases on PyPI.
 
 ## Roadmap
 
-This project is under active development and is classified as alpha software, not yet ready
-for usage in production environments.
+This project is under active development and is classified as beta software, ready for
+production environments on a provisional basis only.
 
-* Beta classification will be assigned when the initial feature set is finalized
+* Beta classification was assigned with [v0.6.0](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.6.0)
 * Stable classification will be assigned when the test suite covers an acceptable number of
   use cases
 
