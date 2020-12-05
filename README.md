@@ -31,9 +31,11 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 Related resources:
 * [Poetry Python Project Manager](https://python-poetry.org/)
 * [Tox Automation Project](https://tox.readthedocs.io/en/latest/)
+* [Other Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
+
+Similar projects:
 * [Poetry Dev-Dependencies Tox Plugin](https://github.com/sinoroc/tox-poetry-dev-dependencies)
 * [Poetry Tox Plugin](https://github.com/tkukushkin/tox-poetry)
-* [Other Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html)
 
 
 ## Installation
@@ -491,7 +493,7 @@ releases on PyPI.
 * To report a bug, request a feature, or ask for assistance, please
   [open an issue on the Github repository](https://github.com/enpaul/tox-poetry-installer/issues/new).
 * To report a security concern or code of conduct violation, please contact the project author
-  directly at **ethan dot paul at enp dot one**.
+  directly at **‌me [at‌] enp dot‎ ‌one**.
 * To submit an update, please
   [fork the repository](https://docs.github.com/en/enterprise/2.20/user/github/getting-started-with-github/fork-a-repo)
   and
