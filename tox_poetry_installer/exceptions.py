@@ -6,6 +6,7 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
 
   ToxPoetryInstallerException
    +-- SkipEnvironment
+   |    +-- PoetryNotInstalledError
    +-- LockedDepVersionConflictError
    +-- LockedDepNotFoundError
    +-- ExtraNotFoundError
@@ -20,6 +21,10 @@ class ToxPoetryInstallerException(Exception):
 
 class SkipEnvironment(ToxPoetryInstallerException):
     """Current environment does not meet preconditions and should be skipped by the plugin"""
+
+
+class PoetryNotInstalledError(SkipEnvironment):
+    """No version of Poetry could be imported from the current Python environment"""
 
 
 class LockedDepVersionConflictError(ToxPoetryInstallerException):

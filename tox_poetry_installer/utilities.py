@@ -1,17 +1,15 @@
 """Helper utility functions, usually bridging Tox and Poetry functionality"""
+# Silence this one globally to support the internal function imports for the proxied poetry module.
+# See the docstring in 'tox_poetry_installer._poetry' for more context.
+# pylint: disable=import-outside-toplevel
 import sys
+import typing
 from pathlib import Path
+from typing import List
 from typing import Sequence
 from typing import Set
 
 from poetry.core.packages import Package as PoetryPackage
-from poetry.core.semver.version import Version
-from poetry.factory import Factory as PoetryFactory
-from poetry.installation.pip_installer import PipInstaller as PoetryPipInstaller
-from poetry.io.null_io import NullIO as PoetryNullIO
-from poetry.poetry import Poetry
-from poetry.puzzle.provider import Provider as PoetryProvider
-from poetry.utils.env import VirtualEnv as PoetryVirtualEnv
 from tox import reporter
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
@@ -20,9 +18,12 @@ from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer.datatypes import PackageMap
 
+if typing.TYPE_CHECKING:
+    from tox_poetry_installer import _poetry
+
 
 def install_to_venv(
-    poetry: Poetry, venv: ToxVirtualEnv, packages: Sequence[PoetryPackage]
+    poetry: "_poetry.Poetry", venv: ToxVirtualEnv, packages: Sequence[PoetryPackage]
 ):
     """Install a bunch of packages to a virtualenv
 
@@ -30,14 +31,15 @@ def install_to_venv(
     :param venv: Tox virtual environment to install the packages to
     :param packages: List of packages to install to the virtual environment
     """
+    from tox_poetry_installer import _poetry
 
     reporter.verbosity1(
         f"{constants.REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
     )
 
-    installer = PoetryPipInstaller(
-        env=PoetryVirtualEnv(path=Path(venv.envconfig.envdir)),
-        io=PoetryNullIO(),
+    installer = _poetry.PipInstaller(
+        env=_poetry.VirtualEnv(path=Path(venv.envconfig.envdir)),
+        io=_poetry.NullIO(),
         pool=poetry.pool,
     )
 
@@ -58,29 +60,25 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
     .. note:: The package corresponding to the dependency named by ``dependency_name`` is included
               in the list of returned packages.
     """
+    from tox_poetry_installer import _poetry
 
     try:
 
         def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
             package = packages[name]
-            local_version = Version(
-                major=sys.version_info.major,
-                minor=sys.version_info.minor,
-                patch=sys.version_info.micro,
-            )
             transients: PackageMap = {}
             searched.update([name])
 
-            if name in PoetryProvider.UNSAFE_PACKAGES:
+            if name in _poetry.Provider.UNSAFE_PACKAGES:
                 reporter.warning(
                     f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
                 )
                 reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
                 )
-            elif not package.python_constraint.allows(local_version):
+            elif not package.python_constraint.allows(constants.PLATFORM_VERSION):
                 reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{local_version}'"
+                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
                 )
             elif package.platform is not None and package.platform != sys.platform:
                 reporter.verbosity2(
@@ -114,8 +112,10 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
         ) from None
 
 
-def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> Poetry:
+def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
     """Check that the local project environment meets expectations"""
+    from tox_poetry_installer import _poetry
+
     # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
     # that better than we can, so let them do their thing. More to the point: if you're having
     # problems in the packaging env that this plugin would solve, god help you.
@@ -125,7 +125,7 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> Poetry:
         )
 
     try:
-        return PoetryFactory().create_poetry(venv.envconfig.config.toxinidir)
+        return _poetry.Factory().create_poetry(venv.envconfig.config.toxinidir)
     # Support running the plugin when the current tox project does not use Poetry for its
     # environment/dependency management.
     #
@@ -135,3 +135,42 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> Poetry:
         raise exceptions.SkipEnvironment(
             "Project does not use Poetry for env management, skipping installation of locked dependencies"
         ) from None
+
+
+def find_project_dependencies(
+    venv: ToxVirtualEnv, poetry: "_poetry.Poetry", packages: PackageMap
+) -> List[PoetryPackage]:
+    """Install the dependencies of the project package
+
+    Install all primary dependencies of the project package.
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
+
+    base_dependencies: List[PoetryPackage] = [
+        packages[item.name]
+        for item in poetry.package.requires
+        if not item.is_optional()
+    ]
+
+    extra_dependencies: List[PoetryPackage] = []
+    for extra in venv.envconfig.extras:
+        reporter.verbosity1(
+            f"{constants.REPORTER_PREFIX} Processing project extra '{extra}'"
+        )
+        try:
+            extra_dependencies += [
+                packages[item.name] for item in poetry.package.extras[extra]
+            ]
+        except KeyError:
+            raise exceptions.ExtraNotFoundError(
+                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
+            ) from None
+
+    dependencies: List[PoetryPackage] = []
+    for dep in base_dependencies + extra_dependencies:
+        dependencies += find_transients(packages, dep.name.lower())
+
+    return dependencies

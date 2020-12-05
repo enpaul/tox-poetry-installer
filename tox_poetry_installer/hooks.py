@@ -8,13 +8,13 @@ from typing import List
 from typing import Optional
 
 from poetry.core.packages import Package as PoetryPackage
-from poetry.poetry import Poetry
 from tox import hookimpl
 from tox import reporter
 from tox.action import Action as ToxAction
 from tox.config import Parser as ToxParser
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
+from tox_poetry_installer import __about__
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import utilities
@@ -72,30 +72,30 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         f"{constants.REPORTER_PREFIX} Loaded project pyproject.toml from {poetry.file}"
     )
 
-    if venv.envconfig.require_locked_deps and venv.envconfig.deps:
-        raise exceptions.LockedDepsRequiredError(
-            f"Unlocked dependencies '{venv.envconfig.deps}' specified for environment '{venv.name}' which requires locked dependencies"
+    try:
+        if venv.envconfig.require_locked_deps and venv.envconfig.deps:
+            raise exceptions.LockedDepsRequiredError(
+                f"Unlocked dependencies '{venv.envconfig.deps}' specified for environment '{venv.name}' which requires locked dependencies"
+            )
+
+        package_map: PackageMap = {
+            package.name: package
+            for package in poetry.locker.locked_repository(True).packages
+        }
+
+        if venv.envconfig.install_dev_deps:
+            dev_deps: List[PoetryPackage] = [
+                dep
+                for dep in package_map.values()
+                if dep not in poetry.locker.locked_repository(False).packages
+            ]
+        else:
+            dev_deps = []
+
+        reporter.verbosity1(
+            f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
         )
 
-    package_map: PackageMap = {
-        package.name: package
-        for package in poetry.locker.locked_repository(True).packages
-    }
-
-    if venv.envconfig.install_dev_deps:
-        dev_deps: List[PoetryPackage] = [
-            dep
-            for dep in package_map.values()
-            if dep not in poetry.locker.locked_repository(False).packages
-        ]
-    else:
-        dev_deps = []
-
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
-    )
-
-    try:
         env_deps: List[PoetryPackage] = []
         for dep in venv.envconfig.locked_deps:
             env_deps += utilities.find_transients(package_map, dep.lower())
@@ -104,7 +104,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         )
 
         if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
-            project_deps: List[PoetryPackage] = _find_project_dependencies(
+            project_deps: List[PoetryPackage] = utilities.find_project_dependencies(
                 venv, poetry, package_map
             )
         else:
@@ -116,50 +116,19 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             f"{constants.REPORTER_PREFIX} Identified {len(project_deps)} project dependencies to install to env"
         )
     except exceptions.ToxPoetryInstallerException as err:
-        venv.status = "lockfile installation failed"
+        venv.status = err.__class__.__name__
         reporter.error(f"{constants.REPORTER_PREFIX} {err}")
+        return False
+    except Exception as err:
+        venv.status = "InternalError"
+        reporter.error(f"{constants.REPORTER_PREFIX} Internal plugin error: {err}")
         raise err
 
     dependencies = list(set(dev_deps + env_deps + project_deps))
-    reporter.verbosity0(
-        f"{constants.REPORTER_PREFIX} Installing {len(dependencies)} dependencies to env '{action.name}'"
+    action.setactivity(
+        __about__.__title__,
+        f"Installing {len(dependencies)} dependencies from Poetry lock file",
     )
     utilities.install_to_venv(poetry, venv, dependencies)
 
     return venv.envconfig.require_locked_deps or None
-
-
-def _find_project_dependencies(
-    venv: ToxVirtualEnv, poetry: Poetry, packages: PackageMap
-) -> List[PoetryPackage]:
-    """Install the dependencies of the project package
-
-    Install all primary dependencies of the project package.
-
-    :param venv: Tox virtual environment to install the packages to
-    :param poetry: Poetry object the packages were sourced from
-    :param packages: Mapping of package names to the corresponding package object
-    """
-
-    base_dependencies: List[PoetryPackage] = [
-        packages[item.name]
-        for item in poetry.package.requires
-        if not item.is_optional()
-    ]
-
-    extra_dependencies: List[PoetryPackage] = []
-    for extra in venv.envconfig.extras:
-        try:
-            extra_dependencies += [
-                packages[item.name] for item in poetry.package.extras[extra]
-            ]
-        except KeyError:
-            raise exceptions.ExtraNotFoundError(
-                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
-            ) from None
-
-    dependencies: List[PoetryPackage] = []
-    for dep in base_dependencies + extra_dependencies:
-        dependencies += utilities.find_transients(packages, dep.name.lower())
-
-    return dependencies
