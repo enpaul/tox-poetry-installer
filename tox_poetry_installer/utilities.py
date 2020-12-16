@@ -62,43 +62,41 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
     """
     from tox_poetry_installer import _poetry
 
+    def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
+        package = packages[name]
+        transients: PackageMap = {}
+        searched.add(name)
+
+        if name in _poetry.Provider.UNSAFE_PACKAGES:
+            reporter.warning(
+                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
+            )
+            reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
+            )
+        elif not package.python_constraint.allows(constants.PLATFORM_VERSION):
+            reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
+            )
+        elif package.platform is not None and package.platform != sys.platform:
+            reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
+            )
+        else:
+            reporter.verbosity2(f"{constants.REPORTER_PREFIX} Include {package}")
+            transients[name] = package
+            for dep in package.requires:
+                if dep.name not in searched:
+                    transients.update(find_deps_of_deps(dep.name, searched))
+
+        return transients
+
+    searched: Set[str] = set()
+
     try:
-
-        def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
-            package = packages[name]
-            transients: PackageMap = {}
-            searched.update([name])
-
-            if name in _poetry.Provider.UNSAFE_PACKAGES:
-                reporter.warning(
-                    f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
-                )
-                reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
-                )
-            elif not package.python_constraint.allows(constants.PLATFORM_VERSION):
-                reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
-                )
-            elif package.platform is not None and package.platform != sys.platform:
-                reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
-                )
-            else:
-                reporter.verbosity2(f"{constants.REPORTER_PREFIX} Include {package}")
-                transients[name] = package
-                for dep in package.requires:
-                    if dep.name not in searched:
-                        transients.update(find_deps_of_deps(dep.name, searched))
-
-            return transients
-
-        searched: Set[str] = set()
         transients: PackageMap = find_deps_of_deps(
             packages[dependency_name].name, searched
         )
-
-        return set(transients.values())
     except KeyError:
         if any(
             delimiter in dependency_name
@@ -110,6 +108,8 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
         raise exceptions.LockedDepNotFoundError(
             f"No version of locked dependency '{dependency_name}' found in the project lockfile"
         ) from None
+
+    return set(transients.values())
 
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
