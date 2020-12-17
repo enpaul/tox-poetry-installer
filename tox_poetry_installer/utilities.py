@@ -63,8 +63,6 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
     from tox_poetry_installer import _poetry
 
     def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
-        package = packages[name]
-        transients: PackageMap = {}
         searched.add(name)
 
         if name in _poetry.Provider.UNSAFE_PACKAGES:
@@ -72,9 +70,15 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
                 f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
             )
             reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {package}: designated unsafe by Poetry"
+                f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
             )
-        elif not package.python_constraint.allows(constants.PLATFORM_VERSION):
+
+            return dict()
+
+        transients: PackageMap = {}
+        package = packages[name]
+
+        if not package.python_constraint.allows(constants.PLATFORM_VERSION):
             reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
             )
