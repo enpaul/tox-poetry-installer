@@ -72,7 +72,6 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
             reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
             )
-
             return dict()
 
         transients: PackageMap = {}
@@ -87,11 +86,20 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
                 f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
             )
         else:
-            reporter.verbosity2(f"{constants.REPORTER_PREFIX} Include {package}")
+            reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Including {package} for installation"
+            )
             transients[name] = package
-            for dep in package.requires:
+            for index, dep in enumerate(package.requires):
+                reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Processing dependency {index + 1}/{len(package.requires)} for {package}: {dep.name}"
+                )
                 if dep.name not in searched:
                     transients.update(find_deps_of_deps(dep.name, searched))
+                else:
+                    reporter.verbosity2(
+                        f"{constants.REPORTER_PREFIX} Package with name '{dep.name}' has already been processed, skipping"
+                    )
 
         return transients
 
