@@ -67,7 +67,7 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
 
         if name in _poetry.Provider.UNSAFE_PACKAGES:
             reporter.warning(
-                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported; skipping installation of package '{name}'"
+                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported and will be skipped"
             )
             reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
@@ -110,6 +110,12 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
             packages[dependency_name].name, searched
         )
     except KeyError:
+        if dependency_name in _poetry.Provider.UNSAFE_PACKAGES:
+            reporter.warning(
+                f"{constants.REPORTER_PREFIX} Installing package '{dependency_name}' using Poetry is not supported and will be skipped"
+            )
+            return set()
+
         if any(
             delimiter in dependency_name
             for delimiter in constants.PEP508_VERSION_DELIMITERS
@@ -117,6 +123,7 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
             raise exceptions.LockedDepVersionConflictError(
                 f"Locked dependency '{dependency_name}' cannot include version specifier"
             ) from None
+
         raise exceptions.LockedDepNotFoundError(
             f"No version of locked dependency '{dependency_name}' found in the project lockfile"
         ) from None
