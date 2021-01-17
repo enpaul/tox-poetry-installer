@@ -12,6 +12,8 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 [![python-versions](https://img.shields.io/pypi/pyversions/tox-poetry-installer)](https://www.python.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+[Changelog](https://github.com/enpaul/tox-poetry-installer/blob/devel/CHANGELOG.md)
+
 **Documentation**
 
 * [Introduction](#introduction)
