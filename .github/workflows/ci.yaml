@@ -40,9 +40,7 @@ jobs:
       - name: Setup:env
         run: .github/scripts/setup-env.sh
       - name: Run:${{ matrix.python.toxenv }}
-        run: $HOME/ci/bin/tox \
-          -e ${{ matrix.python.toxenv }} \
-          --require-poetry
+        run: $HOME/ci/bin/tox -e ${{ matrix.python.toxenv }} --require-poetry
   Check:
     runs-on: ubuntu-latest
     steps:
