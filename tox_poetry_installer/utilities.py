@@ -145,6 +145,16 @@ def find_transients(
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
     """Check that the local project environment meets expectations"""
+    # Skip running the plugin for the provisioning environment. The provisioned environment,
+    # for alternative Tox versions and/or the ``requires`` meta dependencies is specially
+    # handled by Tox and is out of scope for this plugin. Since one of the ways to install this
+    # plugin in the first place is via the Tox provisioning environment, it quickly becomes a
+    # chicken-and-egg problem.
+    if action.name == venv.envconfig.config.provision_tox_env:
+        raise exceptions.SkipEnvironment(
+            f"Skipping Tox provisioning env '{action.name}'"
+        )
+
     # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
     # that better than we can, so let them do their thing. More to the point: if you're having
     # problems in the packaging env that this plugin would solve, god help you.
