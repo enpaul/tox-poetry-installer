@@ -2,6 +2,20 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.6.2
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.6.2),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.6.2/)
+
+* Update locked version of `py` to `1.10.0` to address
+  [CVE-2020-29651](https://nvd.nist.gov/vuln/detail/CVE-2020-29651)
+* Fix dependency identification failing when the package under test is a transient dependency
+  of a locked dependency specified for installation
+* Fix `AttributeError` being raised while creating the Tox self-provisioned environment when
+  using either the [`minversion`](https://tox.readthedocs.io/en/latest/config.html#conf-minversion)
+  or [`requires`](https://tox.readthedocs.io/en/latest/config.html#conf-requires) Tox config options
+
 
 ## Version 0.6.1
 
