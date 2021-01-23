@@ -112,7 +112,9 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
 
         env_deps: List[PoetryPackage] = []
         for dep in venv.envconfig.locked_deps:
-            env_deps += utilities.find_transients(package_map, dep.lower())
+            env_deps += utilities.find_transients(
+                package_map, dep.lower(), allow_missing=[poetry.package.name]
+            )
         reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(env_deps)} environment dependencies to install to env"
         )

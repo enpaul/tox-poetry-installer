@@ -48,13 +48,17 @@ def install_to_venv(
         installer.install(dependency)
 
 
-def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPackage]:
+def find_transients(
+    packages: PackageMap, dependency_name: str, allow_missing: Sequence[str] = ()
+) -> Set[PoetryPackage]:
     """Using a poetry object identify all dependencies of a specific dependency
 
-    :param poetry: Populated poetry object which can be used to build a populated locked
-                   repository object.
+    :param packages: All packages from the lockfile to use for identifying dependency relationships.
     :param dependency_name: Bare name (without version) of the dependency to fetch the transient
                             dependencies of.
+    :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
+                          packages that are not found in the lockfile but their name appears in this
+                          list will be silently skipped from installation.
     :returns: List of packages that need to be installed for the requested dependency.
 
     .. note:: The package corresponding to the dependency named by ``dependency_name`` is included
@@ -75,7 +79,15 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
             return dict()
 
         transients: PackageMap = {}
-        package = packages[name]
+        try:
+            package = packages[name]
+        except KeyError as err:
+            if name in allow_missing:
+                reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
+                )
+                return dict()
+            raise err
 
         if not package.python_constraint.allows(constants.PLATFORM_VERSION):
             reporter.verbosity2(
@@ -133,6 +145,16 @@ def find_transients(packages: PackageMap, dependency_name: str) -> Set[PoetryPac
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
     """Check that the local project environment meets expectations"""
+    # Skip running the plugin for the provisioning environment. The provisioned environment,
+    # for alternative Tox versions and/or the ``requires`` meta dependencies is specially
+    # handled by Tox and is out of scope for this plugin. Since one of the ways to install this
+    # plugin in the first place is via the Tox provisioning environment, it quickly becomes a
+    # chicken-and-egg problem.
+    if action.name == venv.envconfig.config.provision_tox_env:
+        raise exceptions.SkipEnvironment(
+            f"Skipping Tox provisioning env '{action.name}'"
+        )
+
     # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
     # that better than we can, so let them do their thing. More to the point: if you're having
     # problems in the packaging env that this plugin would solve, god help you.
@@ -190,6 +212,8 @@ def find_project_dependencies(
 
     dependencies: List[PoetryPackage] = []
     for dep in base_dependencies + extra_dependencies:
-        dependencies += find_transients(packages, dep.name.lower())
+        dependencies += find_transients(
+            packages, dep.name.lower(), allow_missing=[poetry.package.name]
+        )
 
     return dependencies
