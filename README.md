@@ -491,15 +491,16 @@ git clone https://github.com/enpaul/tox-poetry-installer.git
 # ...over SSH
 git clone git@github.com:enpaul/tox-poetry-installer.git
 
-# Create a the local project virtual environment and install dependencies
-cd tox-poetry-installer
-poetry install -E poetry
+cd tox-poetry-installer/
 
-# Install pre-commit hooks
-poetry run pre-commit install
+# Create and configure the local development environment
+make dev
 
-# Run tests and static analysis
-poetry run tox
+# Run tests and CI locally
+make test
+
+# Check additional make targets
+make help
 ```
 
 **NOTE:** Because the pre-commit hooks require dependencies in the Poetry environment it
