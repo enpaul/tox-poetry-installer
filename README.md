@@ -479,8 +479,10 @@ the [`--require-poetry`](#--require-poetry) option.
 
 ## Developing
 
-This project requires Poetry version 1.0+ on the development workstation, see
-the [installation instructions here](https://python-poetry.org/docs/#installation).
+Local development requirements:
+* Python version 3.6+ ([install](https://www.python.org/downloads/))
+* Poetry version 1.0+ ([install](https://python-poetry.org/docs/#installation))
+* GNU Make (optional, required to use the makefile)
 
 Local environment setup instructions:
 
