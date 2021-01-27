@@ -550,14 +550,14 @@ production environments on a provisional basis only.
 - [X] Add per-environment Tox configuration option to fall back to default installation
       backend.
 - [ ] ~Add warnings when an unsupported Tox configuration option is detected while using the
-      Poetry backend. ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))~
+      Poetry backend.~ ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))
 - [X] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
       and the module constants.
 - [X] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and
       improve robustness of the Tox and Poetry module imports
       to avoid potentially breaking API changes in upstream packages. ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
-- [ ] ~Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry.
-      ([#6](https://github.com/enpaul/tox-poetry-installer/issues/6))~
+- [ ] ~Find and implement a way to mitigate the [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in Poetry.~
+      ([#6](https://github.com/enpaul/tox-poetry-installer/issues/6))
 - [X] Fix logging to make proper use of Tox's logging reporter infrastructure ([#3](https://github.com/enpaul/tox-poetry-installer/issues/3))
 - [X] Add configuration option for installing all dev-dependencies to a testenv ([#14](https://github.com/enpaul/tox-poetry-installer/issues/14))
 
@@ -565,9 +565,10 @@ production environments on a provisional basis only.
 
 Everything in Beta plus...
 
+- [ ] Fully replace dependency on `poetry` with dependency on `poetry-core` ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [ ] Add comprehensive unit tests
 - [ ] Add tests for each feature version of Tox between 3.0 and 3.20
-- [ ] Add tests for Python-3.6, 3.7, 3.8, and 3.9
+- [X] Add tests for Python-3.6, 3.7, 3.8, and 3.9
 - [X] Add Github Actions based CI
 - [ ] Add CI for CPython, PyPy, and Conda
 - [ ] Add CI for Linux and Windows
