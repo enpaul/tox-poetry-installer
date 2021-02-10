@@ -5,11 +5,11 @@ dependencies to be installed using [Poetry](https://python-poetry.org/) from its
 
 ⚠️ **This project is beta software and is under active development** ⚠️
 
-[![ci-status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
-[![pypi-version](https://img.shields.io/pypi/v/tox-poetry-installer)](https://pypi.org/project/tox-poetry-installer/)
-[![pypi-downloads](https://img.shields.io/pypi/dm/tox-poetry-installer)](https://libraries.io/pypi/tox-poetry-installer)
-[![license](https://img.shields.io/pypi/l/tox-poetry-installer)](https://opensource.org/licenses/MIT)
-[![python-versions](https://img.shields.io/pypi/pyversions/tox-poetry-installer)](https://www.python.org)
+[![CI Status](https://github.com/enpaul/tox-poetry-installer/workflows/CI/badge.svg?event=push)](https://github.com/enpaul/tox-poetry-installer/actions)
+[![PyPI Version](https://img.shields.io/pypi/v/tox-poetry-installer?color=%2331c854)](https://pypi.org/project/tox-poetry-installer/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/tox-poetry-installer?color=%2331c854)](https://libraries.io/pypi/tox-poetry-installer)
+[![License](https://img.shields.io/pypi/l/tox-poetry-installer?color=%2331c854)](https://opensource.org/licenses/MIT)
+[![Python Supported Versions](https://img.shields.io/pypi/pyversions/tox-poetry-installer)](https://www.python.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 See the [Changelog](https://github.com/enpaul/tox-poetry-installer/blob/devel/CHANGELOG.md) for release history.
