@@ -16,6 +16,7 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 from tox_poetry_installer import __about__
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
+from tox_poetry_installer import installer
 from tox_poetry_installer import utilities
 from tox_poetry_installer.datatypes import PackageMap
 
@@ -139,6 +140,6 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         __about__.__title__,
         f"Installing {len(dependencies)} dependencies from Poetry lock file",
     )
-    utilities.install_to_venv(poetry, venv, dependencies)
+    installer.install(poetry, venv, dependencies)
 
     return venv.envconfig.require_locked_deps or None

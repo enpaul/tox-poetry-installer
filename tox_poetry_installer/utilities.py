@@ -4,7 +4,6 @@
 # pylint: disable=import-outside-toplevel
 import sys
 import typing
-from pathlib import Path
 from typing import List
 from typing import Sequence
 from typing import Set
@@ -20,32 +19,6 @@ from tox_poetry_installer.datatypes import PackageMap
 
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
-
-
-def install_to_venv(
-    poetry: "_poetry.Poetry", venv: ToxVirtualEnv, packages: Sequence[PoetryPackage]
-):
-    """Install a bunch of packages to a virtualenv
-
-    :param poetry: Poetry object the packages were sourced from
-    :param venv: Tox virtual environment to install the packages to
-    :param packages: List of packages to install to the virtual environment
-    """
-    from tox_poetry_installer import _poetry
-
-    tox.reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
-    )
-
-    installer = _poetry.PipInstaller(
-        env=_poetry.VirtualEnv(path=Path(venv.envconfig.envdir)),
-        io=_poetry.NullIO(),
-        pool=poetry.pool,
-    )
-
-    for dependency in packages:
-        tox.reporter.verbosity1(f"{constants.REPORTER_PREFIX} Installing {dependency}")
-        installer.install(dependency)
 
 
 def identify_transients(
