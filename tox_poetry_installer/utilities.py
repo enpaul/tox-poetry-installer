@@ -4,13 +4,12 @@
 # pylint: disable=import-outside-toplevel
 import sys
 import typing
-from pathlib import Path
 from typing import List
 from typing import Sequence
 from typing import Set
 
+import tox
 from poetry.core.packages import Package as PoetryPackage
-from tox import reporter
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
@@ -20,127 +19,6 @@ from tox_poetry_installer.datatypes import PackageMap
 
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
-
-
-def install_to_venv(
-    poetry: "_poetry.Poetry", venv: ToxVirtualEnv, packages: Sequence[PoetryPackage]
-):
-    """Install a bunch of packages to a virtualenv
-
-    :param poetry: Poetry object the packages were sourced from
-    :param venv: Tox virtual environment to install the packages to
-    :param packages: List of packages to install to the virtual environment
-    """
-    from tox_poetry_installer import _poetry
-
-    reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
-    )
-
-    installer = _poetry.PipInstaller(
-        env=_poetry.VirtualEnv(path=Path(venv.envconfig.envdir)),
-        io=_poetry.NullIO(),
-        pool=poetry.pool,
-    )
-
-    for dependency in packages:
-        reporter.verbosity1(f"{constants.REPORTER_PREFIX} Installing {dependency}")
-        installer.install(dependency)
-
-
-def find_transients(
-    packages: PackageMap, dependency_name: str, allow_missing: Sequence[str] = ()
-) -> Set[PoetryPackage]:
-    """Using a poetry object identify all dependencies of a specific dependency
-
-    :param packages: All packages from the lockfile to use for identifying dependency relationships.
-    :param dependency_name: Bare name (without version) of the dependency to fetch the transient
-                            dependencies of.
-    :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
-                          packages that are not found in the lockfile but their name appears in this
-                          list will be silently skipped from installation.
-    :returns: List of packages that need to be installed for the requested dependency.
-
-    .. note:: The package corresponding to the dependency named by ``dependency_name`` is included
-              in the list of returned packages.
-    """
-    from tox_poetry_installer import _poetry
-
-    def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
-        searched.add(name)
-
-        if name in _poetry.Provider.UNSAFE_PACKAGES:
-            reporter.warning(
-                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported and will be skipped"
-            )
-            reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
-            )
-            return dict()
-
-        transients: PackageMap = {}
-        try:
-            package = packages[name]
-        except KeyError as err:
-            if name in allow_missing:
-                reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
-                )
-                return dict()
-            raise err
-
-        if not package.python_constraint.allows(constants.PLATFORM_VERSION):
-            reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
-            )
-        elif package.platform is not None and package.platform != sys.platform:
-            reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
-            )
-        else:
-            reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Including {package} for installation"
-            )
-            transients[name] = package
-            for index, dep in enumerate(package.requires):
-                reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Processing dependency {index + 1}/{len(package.requires)} for {package}: {dep.name}"
-                )
-                if dep.name not in searched:
-                    transients.update(find_deps_of_deps(dep.name, searched))
-                else:
-                    reporter.verbosity2(
-                        f"{constants.REPORTER_PREFIX} Package with name '{dep.name}' has already been processed, skipping"
-                    )
-
-        return transients
-
-    searched: Set[str] = set()
-
-    try:
-        transients: PackageMap = find_deps_of_deps(
-            packages[dependency_name].name, searched
-        )
-    except KeyError:
-        if dependency_name in _poetry.Provider.UNSAFE_PACKAGES:
-            reporter.warning(
-                f"{constants.REPORTER_PREFIX} Installing package '{dependency_name}' using Poetry is not supported and will be skipped"
-            )
-            return set()
-
-        if any(
-            delimiter in dependency_name
-            for delimiter in constants.PEP508_VERSION_DELIMITERS
-        ):
-            raise exceptions.LockedDepVersionConflictError(
-                f"Locked dependency '{dependency_name}' cannot include version specifier"
-            ) from None
-
-        raise exceptions.LockedDepNotFoundError(
-            f"No version of locked dependency '{dependency_name}' found in the project lockfile"
-        ) from None
-
-    return set(transients.values())
 
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
@@ -178,42 +56,169 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
         ) from None
 
 
-def find_project_dependencies(
-    venv: ToxVirtualEnv, poetry: "_poetry.Poetry", packages: PackageMap
+def identify_transients(
+    packages: PackageMap, dep_name: str, allow_missing: Sequence[str] = ()
 ) -> List[PoetryPackage]:
-    """Install the dependencies of the project package
+    """Using a pool of packages, identify all transient dependencies of a given package name
 
-    Install all primary dependencies of the project package.
+    :param packages: All packages from the lockfile to use for identifying dependency relationships.
+    :param dep_name: Bare name (without version) of the dependency to fetch the transient
+                            dependencies of.
+    :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
+                          packages that are not found in the lockfile but their name appears in this
+                          list will be silently skipped from installation.
+    :returns: List of packages that need to be installed for the requested dependency.
 
-    :param venv: Tox virtual environment to install the packages to
-    :param poetry: Poetry object the packages were sourced from
-    :param packages: Mapping of package names to the corresponding package object
+    .. note:: The package corresponding to the dependency named by ``dep_name`` is included
+              in the list of returned packages.
+    """
+    from tox_poetry_installer import _poetry
+
+    transients: List[PoetryPackage] = []
+
+    searched: Set[PoetryPackage] = set()
+
+    def find_deps_of_deps(name: str):
+        searched.add(name)
+
+        if name in _poetry.Provider.UNSAFE_PACKAGES:
+            tox.reporter.warning(
+                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported and will be skipped"
+            )
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
+            )
+            return
+
+        try:
+            package = packages[name]
+        except KeyError as err:
+            if name in allow_missing:
+                tox.reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
+                )
+                return
+            raise err
+
+        if not package.python_constraint.allows(constants.PLATFORM_VERSION):
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
+            )
+        elif package.platform is not None and package.platform != sys.platform:
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
+            )
+        else:
+            for index, dep in enumerate(package.requires):
+                tox.reporter.verbosity2(
+                    f"{constants.REPORTER_PREFIX} Processing {package} dependency {index + 1}/{len(package.requires)}: {dep.name}"
+                )
+                if dep.name not in searched:
+                    find_deps_of_deps(dep.name)
+                else:
+                    tox.reporter.verbosity2(
+                        f"{constants.REPORTER_PREFIX} Skip {package}: already included for installation"
+                    )
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Including {package} for installation"
+            )
+            transients.append(package)
+
+    try:
+        find_deps_of_deps(packages[dep_name].name)
+    except KeyError:
+        if dep_name in _poetry.Provider.UNSAFE_PACKAGES:
+            tox.reporter.warning(
+                f"{constants.REPORTER_PREFIX} Installing package '{dep_name}' using Poetry is not supported and will be skipped"
+            )
+            return []
+
+        if any(
+            delimiter in dep_name for delimiter in constants.PEP508_VERSION_DELIMITERS
+        ):
+            raise exceptions.LockedDepVersionConflictError(
+                f"Locked dependency '{dep_name}' cannot include version specifier"
+            ) from None
+
+        raise exceptions.LockedDepNotFoundError(
+            f"No version of locked dependency '{dep_name}' found in the project lockfile"
+        ) from None
+
+    return transients
+
+
+def find_project_deps(
+    packages: PackageMap, poetry: "_poetry.Poetry", extras: Sequence[str] = ()
+) -> List[PoetryPackage]:
+    """Find the root project dependencies
+
+    Recursively identify the dependencies of the root project package
+
+    :param packages: Mapping of all locked package names to their corresponding package object
+    :param poetry: Poetry object for the current project
+    :param extras: Sequence of extra names to include the dependencies of
     """
 
-    base_dependencies: List[PoetryPackage] = [
+    base_deps: List[PoetryPackage] = [
         packages[item.name]
         for item in poetry.package.requires
         if not item.is_optional()
     ]
 
-    extra_dependencies: List[PoetryPackage] = []
-    for extra in venv.envconfig.extras:
-        reporter.verbosity1(
+    extra_deps: List[PoetryPackage] = []
+    for extra in extras:
+        tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Processing project extra '{extra}'"
         )
         try:
-            extra_dependencies += [
-                packages[item.name] for item in poetry.package.extras[extra]
-            ]
+            extra_deps += [packages[item.name] for item in poetry.package.extras[extra]]
         except KeyError:
             raise exceptions.ExtraNotFoundError(
-                f"Environment '{venv.name}' specifies project extra '{extra}' which was not found in the lockfile"
+                f"Environment specifies project extra '{extra}' which was not found in the lockfile"
             ) from None
 
     dependencies: List[PoetryPackage] = []
-    for dep in base_dependencies + extra_dependencies:
-        dependencies += find_transients(
+    for dep in base_deps + extra_deps:
+        dependencies += identify_transients(
             packages, dep.name.lower(), allow_missing=[poetry.package.name]
         )
 
     return dependencies
+
+
+def find_additional_deps(
+    packages: PackageMap, poetry: "_poetry.Poetry", dep_names: Sequence[str]
+) -> List[PoetryPackage]:
+    """Find additional dependencies
+
+    Recursively identify the dependencies of an arbitrary list of package names
+
+    :param packages: Mapping of all locked package names to their corresponding package object
+    :param poetry: Poetry object for the current project
+    :param dep_names: Sequence of additional dependency names to recursively find the transient
+                      dependencies for
+    """
+    deps: List[PoetryPackage] = []
+    for dep_name in dep_names:
+        deps += identify_transients(
+            packages, dep_name.lower(), allow_missing=[poetry.package.name]
+        )
+
+    return deps
+
+
+def find_dev_deps(
+    packages: PackageMap, poetry: "_poetry.Poetry"
+) -> List[PoetryPackage]:
+    """Find the dev dependencies
+
+    Recursively identify the Poetry dev dependencies
+
+    :param packages: Mapping of all locked package names to their corresponding package object
+    :param poetry: Poetry object for the current project
+    """
+    return find_additional_deps(
+        packages,
+        poetry,
+        poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),
+    )

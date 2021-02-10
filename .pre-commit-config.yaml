@@ -13,36 +13,57 @@
 # by the Poetry-managed dependency.
 #
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.3.0
+  - repo: local
     hooks:
       - id: end-of-file-fixer
+        name: end-of-file-fixer
+        entry: end-of-file-fixer
         language: system
+        types:
+          - text
+
       - id: fix-encoding-pragma
+        name: fix-encoding-pragma
+        entry: fix-encoding-pragma
+        language: system
         args:
           - "--remove"
+        types:
+          - python
+
+      - id: trailing-whitespace-fixer
+        name: trailing-whitespace-fixer
+        entry: trailing-whitespace-fixer
         language: system
-      - id: trailing-whitespace
-        language: system
+        types:
+          - text
+
       - id: check-merge-conflict
+        name: check-merge-conflict
+        entry: check-merge-conflict
         language: system
+        types:
+          - text
 
-  - repo: https://github.com/psf/black
-    rev: 20.8b1
-    hooks:
-      - id: black
-        language: system
-
-  - repo: https://github.com/asottile/blacken-docs
-    rev: v1.8.0
-    hooks:
-      - id: blacken-docs
-        language: system
-
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.3.6
-    hooks:
       - id: reorder-python-imports
+        name: reorder-python-imports
+        entry: reorder-python-imports
+        language: system
         args:
           - "--unclassifiable-application-module=tox_poetry_installer"
+        types:
+          - python
+
+      - id: black
+        name: black
+        entry: black
         language: system
+        types:
+          - python
+
+      - id: blacken-docs
+        name: blacken-docs
+        entry: blacken-docs
+        language: system
+        types:
+          - text
