@@ -48,9 +48,9 @@ def install_to_venv(
         installer.install(dependency)
 
 
-def find_transients(
+def identify_transients(
     packages: PackageMap, dependency_name: str, allow_missing: Sequence[str] = ()
-) -> Set[PoetryPackage]:
+) -> List[PoetryPackage]:
     """Using a poetry object identify all dependencies of a specific dependency
 
     :param packages: All packages from the lockfile to use for identifying dependency relationships.
@@ -66,7 +66,11 @@ def find_transients(
     """
     from tox_poetry_installer import _poetry
 
-    def find_deps_of_deps(name: str, searched: Set[str]) -> PackageMap:
+    transients: List[PoetryPackage] = []
+
+    searched: Set[PoetryPackage] = set()
+
+    def find_deps_of_deps(name: str):
         searched.add(name)
 
         if name in _poetry.Provider.UNSAFE_PACKAGES:
@@ -76,9 +80,8 @@ def find_transients(
             tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
             )
-            return dict()
+            return
 
-        transients: PackageMap = {}
         try:
             package = packages[name]
         except KeyError as err:
@@ -86,7 +89,7 @@ def find_transients(
                 tox.reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
                 )
-                return dict()
+                return
             raise err
 
         if not package.python_constraint.allows(constants.PLATFORM_VERSION):
@@ -98,35 +101,29 @@ def find_transients(
                 f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
             )
         else:
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Including {package} for installation"
-            )
-            transients[name] = package
             for index, dep in enumerate(package.requires):
                 tox.reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Processing dependency {index + 1}/{len(package.requires)} for {package}: {dep.name}"
                 )
                 if dep.name not in searched:
-                    transients.update(find_deps_of_deps(dep.name, searched))
+                    find_deps_of_deps(dep.name)
                 else:
                     tox.reporter.verbosity2(
                         f"{constants.REPORTER_PREFIX} Package with name '{dep.name}' has already been processed, skipping"
                     )
-
-        return transients
-
-    searched: Set[str] = set()
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Including {package} for installation"
+            )
+            transients.append(package)
 
     try:
-        transients: PackageMap = find_deps_of_deps(
-            packages[dependency_name].name, searched
-        )
+        find_deps_of_deps(packages[dependency_name].name)
     except KeyError:
         if dependency_name in _poetry.Provider.UNSAFE_PACKAGES:
             tox.reporter.warning(
                 f"{constants.REPORTER_PREFIX} Installing package '{dependency_name}' using Poetry is not supported and will be skipped"
             )
-            return set()
+            return []
 
         if any(
             delimiter in dependency_name
@@ -140,7 +137,7 @@ def find_transients(
             f"No version of locked dependency '{dependency_name}' found in the project lockfile"
         ) from None
 
-    return set(transients.values())
+    return transients
 
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
@@ -181,9 +178,9 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
 def find_project_dependencies(
     venv: ToxVirtualEnv, poetry: "_poetry.Poetry", packages: PackageMap
 ) -> List[PoetryPackage]:
-    """Install the dependencies of the project package
+    """Find the root package dependencies
 
-    Install all primary dependencies of the project package.
+    Recursively identify the root package dependencies
 
     :param venv: Tox virtual environment to install the packages to
     :param poetry: Poetry object the packages were sourced from
@@ -212,8 +209,50 @@ def find_project_dependencies(
 
     dependencies: List[PoetryPackage] = []
     for dep in base_dependencies + extra_dependencies:
-        dependencies += find_transients(
+        dependencies += identify_transients(
             packages, dep.name.lower(), allow_missing=[poetry.package.name]
+        )
+
+    return dependencies
+
+
+def find_dev_dependencies(
+    poetry: "_poetry.Poetry", packages: PackageMap
+) -> List[PoetryPackage]:
+    """Find the dev dependencies
+
+    Recursively identify the Poetry dev dependencies
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
+    dependencies: List[PoetryPackage] = []
+    for dep_name in (
+        poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys()
+    ):
+        dependencies += identify_transients(
+            packages, dep_name, allow_missing=[poetry.package.name]
+        )
+
+    return dependencies
+
+
+def find_env_dependencies(
+    venv: ToxVirtualEnv, poetry: "_poetry.Poetry", packages: PackageMap
+) -> List[PoetryPackage]:
+    """Find the environment dependencies
+
+    Recursively identify the dependencies to install for the current environment
+
+    :param venv: Tox virtual environment to install the packages to
+    :param poetry: Poetry object the packages were sourced from
+    :param packages: Mapping of package names to the corresponding package object
+    """
+    dependencies: List[PoetryPackage] = []
+    for dep in venv.envconfig.locked_deps:
+        dependencies += identify_transients(
+            packages, dep.lower(), allow_missing=[poetry.package.name]
         )
 
     return dependencies

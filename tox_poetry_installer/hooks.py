@@ -97,23 +97,18 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         }
 
         if venv.envconfig.install_dev_deps:
-            dev_deps: List[PoetryPackage] = [
-                dep
-                for dep in package_map.values()
-                if dep not in poetry.locker.locked_repository(False).packages
-            ]
+            dev_deps = utilities.find_dev_dependencies(poetry, package_map)
+            tox.reporter.verbosity1(
+                f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
+            )
         else:
             dev_deps = []
-
-        tox.reporter.verbosity1(
-            f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
-        )
-
-        env_deps: List[PoetryPackage] = []
-        for dep in venv.envconfig.locked_deps:
-            env_deps += utilities.find_transients(
-                package_map, dep.lower(), allow_missing=[poetry.package.name]
+            tox.reporter.verbosity1(
+                f"{constants.REPORTER_PREFIX} Env does not install development dependencies, skipping"
             )
+
+        env_deps = utilities.find_env_dependencies(venv, poetry, package_map)
+
         tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(env_deps)} environment dependencies to install to env"
         )
@@ -139,7 +134,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         tox.reporter.error(f"{constants.REPORTER_PREFIX} Internal plugin error: {err}")
         raise err
 
-    dependencies = list(set(dev_deps + env_deps + project_deps))
+    dependencies = dev_deps + env_deps + project_deps
     action.setactivity(
         __about__.__title__,
         f"Installing {len(dependencies)} dependencies from Poetry lock file",
