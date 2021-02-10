@@ -111,13 +111,13 @@ def identify_transients(
         else:
             for index, dep in enumerate(package.requires):
                 tox.reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Processing dependency {index + 1}/{len(package.requires)} for {package}: {dep.name}"
+                    f"{constants.REPORTER_PREFIX} Processing {package} dependency {index + 1}/{len(package.requires)}: {dep.name}"
                 )
                 if dep.name not in searched:
                     find_deps_of_deps(dep.name)
                 else:
                     tox.reporter.verbosity2(
-                        f"{constants.REPORTER_PREFIX} Package with name '{dep.name}' has already been processed, skipping"
+                        f"{constants.REPORTER_PREFIX} Skip {package}: already included for installation"
                     )
             tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Including {package} for installation"

@@ -19,7 +19,7 @@ PEP508_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
 
 # Prefix all reporter messages should include to indicate that they came from this module in the
 # console output.
-REPORTER_PREFIX: str = f"[{__about__.__title__}]:"
+REPORTER_PREFIX: str = f"{__about__.__title__}:"
 
 
 # Semver compatible version of the current python platform version. Used for checking

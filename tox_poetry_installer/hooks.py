@@ -84,6 +84,11 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         f"{constants.REPORTER_PREFIX} Loaded project pyproject.toml from {poetry.file}"
     )
 
+    if not poetry.locker.is_fresh():
+        tox.reporter.warning(
+            f"The Poetry lock file is not up to date with the latest changes in {poetry.file}"
+        )
+
     try:
         if venv.envconfig.require_locked_deps and venv.envconfig.deps:
             raise exceptions.LockedDepsRequiredError(
@@ -118,14 +123,14 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             project_deps = utilities.find_project_deps(
                 packages, poetry, venv.envconfig.extras
             )
+            tox.reporter.verbosity1(
+                f"{constants.REPORTER_PREFIX} Identified {len(project_deps)} project dependencies to install to env"
+            )
         else:
             project_deps = []
             tox.reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} Skipping installation of project dependencies, env does not install project package"
+                f"{constants.REPORTER_PREFIX} Env does not install project package, skipping"
             )
-        tox.reporter.verbosity1(
-            f"{constants.REPORTER_PREFIX} Identified {len(project_deps)} project dependencies to install to env"
-        )
     except exceptions.ToxPoetryInstallerException as err:
         venv.status = err.__class__.__name__
         tox.reporter.error(f"{constants.REPORTER_PREFIX} {err}")

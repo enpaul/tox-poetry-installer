@@ -42,12 +42,12 @@ def install(
 
     for dependency in packages:
         if dependency not in installed:
-            tox.reporter.verbosity1(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Installing {dependency}"
             )
             pip.install(dependency)
             installed.add(dependency)
         else:
-            tox.reporter.verbosity1(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Already installed {dependency}, skipping"
             )
