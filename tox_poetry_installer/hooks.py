@@ -4,11 +4,9 @@ All implementations of tox hooks are defined here, as well as any single-use hel
 specifically related to implementing the hooks (to keep the size/readability of the hook functions
 themselves manageable).
 """
-from typing import List
 from typing import Optional
 
 import tox
-from poetry.core.packages import Package as PoetryPackage
 from tox.action import Action as ToxAction
 from tox.config import Parser as ToxParser
 from tox.venv import VirtualEnv as ToxVirtualEnv
@@ -92,13 +90,13 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 f"Unlocked dependencies '{venv.envconfig.deps}' specified for environment '{venv.name}' which requires locked dependencies"
             )
 
-        package_map: PackageMap = {
+        packages: PackageMap = {
             package.name: package
             for package in poetry.locker.locked_repository(True).packages
         }
 
         if venv.envconfig.install_dev_deps:
-            dev_deps = utilities.find_dev_dependencies(poetry, package_map)
+            dev_deps = utilities.find_dev_deps(packages, poetry)
             tox.reporter.verbosity1(
                 f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
             )
@@ -108,15 +106,17 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 f"{constants.REPORTER_PREFIX} Env does not install development dependencies, skipping"
             )
 
-        env_deps = utilities.find_env_dependencies(venv, poetry, package_map)
+        env_deps = utilities.find_additional_deps(
+            packages, poetry, venv.envconfig.locked_deps
+        )
 
         tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(env_deps)} environment dependencies to install to env"
         )
 
         if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
-            project_deps: List[PoetryPackage] = utilities.find_project_dependencies(
-                venv, poetry, package_map
+            project_deps = utilities.find_project_deps(
+                packages, poetry, venv.envconfig.extras
             )
         else:
             project_deps = []
