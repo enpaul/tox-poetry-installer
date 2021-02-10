@@ -2,6 +2,20 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+
+## Version 0.6.3
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.6.3),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.6.3/)
+
+* Update required `tox` version from `^3.0` to `^3.8` to avoid compatibility issues
+* Update logging messages to improve UX
+* Fix transient dependency packages being installed in a pseudo-random order due to Python
+  sets being unordered ([#41](https://github.com/enpaul/tox-poetry-installer/issues/41))
+* Fix outdated docstrings
+
+
 ## Version 0.6.2
 
 View this release on:
