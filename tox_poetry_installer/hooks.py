@@ -7,9 +7,8 @@ themselves manageable).
 from typing import List
 from typing import Optional
 
+import tox
 from poetry.core.packages import Package as PoetryPackage
-from tox import hookimpl
-from tox import reporter
 from tox.action import Action as ToxAction
 from tox.config import Parser as ToxParser
 from tox.venv import VirtualEnv as ToxVirtualEnv
@@ -21,7 +20,7 @@ from tox_poetry_installer import utilities
 from tox_poetry_installer.datatypes import PackageMap
 
 
-@hookimpl
+@tox.hookimpl
 def tox_addoption(parser: ToxParser):
     """Add required configuration options to the tox INI file
 
@@ -57,7 +56,7 @@ def tox_addoption(parser: ToxParser):
     )
 
 
-@hookimpl
+@tox.hookimpl
 def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional[bool]:
     """Install the dependencies for the current environment
 
@@ -77,12 +76,12 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             and venv.envconfig.config.option.require_poetry
         ):
             venv.status = err.__class__.__name__
-            reporter.error(str(err))
+            tox.reporter.error(str(err))
             return False
-        reporter.verbosity1(str(err))
+        tox.reporter.verbosity1(str(err))
         return None
 
-    reporter.verbosity1(
+    tox.reporter.verbosity1(
         f"{constants.REPORTER_PREFIX} Loaded project pyproject.toml from {poetry.file}"
     )
 
@@ -106,7 +105,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         else:
             dev_deps = []
 
-        reporter.verbosity1(
+        tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
         )
 
@@ -115,7 +114,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             env_deps += utilities.find_transients(
                 package_map, dep.lower(), allow_missing=[poetry.package.name]
             )
-        reporter.verbosity1(
+        tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(env_deps)} environment dependencies to install to env"
         )
 
@@ -125,19 +124,19 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             )
         else:
             project_deps = []
-            reporter.verbosity1(
+            tox.reporter.verbosity1(
                 f"{constants.REPORTER_PREFIX} Skipping installation of project dependencies, env does not install project package"
             )
-        reporter.verbosity1(
+        tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Identified {len(project_deps)} project dependencies to install to env"
         )
     except exceptions.ToxPoetryInstallerException as err:
         venv.status = err.__class__.__name__
-        reporter.error(f"{constants.REPORTER_PREFIX} {err}")
+        tox.reporter.error(f"{constants.REPORTER_PREFIX} {err}")
         return False
     except Exception as err:
         venv.status = "InternalError"
-        reporter.error(f"{constants.REPORTER_PREFIX} Internal plugin error: {err}")
+        tox.reporter.error(f"{constants.REPORTER_PREFIX} Internal plugin error: {err}")
         raise err
 
     dependencies = list(set(dev_deps + env_deps + project_deps))

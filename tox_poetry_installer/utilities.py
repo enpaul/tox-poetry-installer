@@ -9,8 +9,8 @@ from typing import List
 from typing import Sequence
 from typing import Set
 
+import tox
 from poetry.core.packages import Package as PoetryPackage
-from tox import reporter
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
@@ -33,7 +33,7 @@ def install_to_venv(
     """
     from tox_poetry_installer import _poetry
 
-    reporter.verbosity1(
+    tox.reporter.verbosity1(
         f"{constants.REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
     )
 
@@ -44,7 +44,7 @@ def install_to_venv(
     )
 
     for dependency in packages:
-        reporter.verbosity1(f"{constants.REPORTER_PREFIX} Installing {dependency}")
+        tox.reporter.verbosity1(f"{constants.REPORTER_PREFIX} Installing {dependency}")
         installer.install(dependency)
 
 
@@ -70,10 +70,10 @@ def find_transients(
         searched.add(name)
 
         if name in _poetry.Provider.UNSAFE_PACKAGES:
-            reporter.warning(
+            tox.reporter.warning(
                 f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported and will be skipped"
             )
-            reporter.verbosity2(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
             )
             return dict()
@@ -83,33 +83,33 @@ def find_transients(
             package = packages[name]
         except KeyError as err:
             if name in allow_missing:
-                reporter.verbosity2(
+                tox.reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
                 )
                 return dict()
             raise err
 
         if not package.python_constraint.allows(constants.PLATFORM_VERSION):
-            reporter.verbosity2(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
             )
         elif package.platform is not None and package.platform != sys.platform:
-            reporter.verbosity2(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
             )
         else:
-            reporter.verbosity2(
+            tox.reporter.verbosity2(
                 f"{constants.REPORTER_PREFIX} Including {package} for installation"
             )
             transients[name] = package
             for index, dep in enumerate(package.requires):
-                reporter.verbosity2(
+                tox.reporter.verbosity2(
                     f"{constants.REPORTER_PREFIX} Processing dependency {index + 1}/{len(package.requires)} for {package}: {dep.name}"
                 )
                 if dep.name not in searched:
                     transients.update(find_deps_of_deps(dep.name, searched))
                 else:
-                    reporter.verbosity2(
+                    tox.reporter.verbosity2(
                         f"{constants.REPORTER_PREFIX} Package with name '{dep.name}' has already been processed, skipping"
                     )
 
@@ -123,7 +123,7 @@ def find_transients(
         )
     except KeyError:
         if dependency_name in _poetry.Provider.UNSAFE_PACKAGES:
-            reporter.warning(
+            tox.reporter.warning(
                 f"{constants.REPORTER_PREFIX} Installing package '{dependency_name}' using Poetry is not supported and will be skipped"
             )
             return set()
@@ -198,7 +198,7 @@ def find_project_dependencies(
 
     extra_dependencies: List[PoetryPackage] = []
     for extra in venv.envconfig.extras:
-        reporter.verbosity1(
+        tox.reporter.verbosity1(
             f"{constants.REPORTER_PREFIX} Processing project extra '{extra}'"
         )
         try:
