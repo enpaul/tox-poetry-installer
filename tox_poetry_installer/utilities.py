@@ -59,7 +59,11 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
 
 
 def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
-    """Convert a Tox venv to a Poetry venv"""
+    """Convert a Tox venv to a Poetry venv
+
+    :param venv: Tox ``VirtualEnv`` object representing a tox virtual environment
+    :returns: Poetry ``VirtualEnv`` object representing a poetry virtual environment
+    """
     from tox_poetry_installer import _poetry
 
     return _poetry.VirtualEnv(path=Path(venv.envconfig.envdir))
@@ -73,16 +77,17 @@ def identify_transients(
 ) -> List[PoetryPackage]:
     """Using a pool of packages, identify all transient dependencies of a given package name
 
+    :param dep: Either the Poetry dependency or the dependency's bare package name to recursively
+                identify the transient dependencies of
     :param packages: All packages from the lockfile to use for identifying dependency relationships.
-    :param dep_name: Bare name (without version) of the dependency to fetch the transient
-                            dependencies of.
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
                           packages that are not found in the lockfile but their name appears in this
                           list will be silently skipped from installation.
     :returns: List of packages that need to be installed for the requested dependency.
 
-    .. note:: The package corresponding to the dependency named by ``dep_name`` is included
-              in the list of returned packages.
+    .. note:: The package corresponding to the dependency specified by the ``dep`` parameter will
+              be included in the returned list of packages.
     """
     from tox_poetry_installer import _poetry
 
@@ -153,6 +158,7 @@ def find_project_deps(
     Recursively identify the dependencies of the root project package
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     :param extras: Sequence of extra names to include the dependencies of
     """
@@ -195,6 +201,7 @@ def find_additional_deps(
     Recursively identify the dependencies of an arbitrary list of package names
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     :param dep_names: Sequence of additional dependency names to recursively find the transient
                       dependencies for
@@ -216,6 +223,7 @@ def find_dev_deps(
     Recursively identify the Poetry dev dependencies
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     """
     return find_additional_deps(
