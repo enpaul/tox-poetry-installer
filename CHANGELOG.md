@@ -3,6 +3,20 @@
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
 
+## Version 0.6.4
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.6.4),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.6.4/)
+
+* Remove custom package compatibility checking logic from transient dependency resolution process
+* Add integration with Poetry's compatibility
+  [`Marker`](https://github.com/python-poetry/poetry-core/blob/master/poetry/core/version/markers.py)
+  object system for determining package
+  compatibility with the current platform ([#43](https://github.com/enpaul/tox-poetry-installer/issues/43))
+* Add missing PyPI classifier for Python 3
+
+
 ## Version 0.6.3
 
 View this release on:
