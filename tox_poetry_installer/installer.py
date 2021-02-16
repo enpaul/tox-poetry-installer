@@ -3,7 +3,6 @@
 # See the docstring in 'tox_poetry_installer._poetry' for more context.
 # pylint: disable=import-outside-toplevel
 import typing
-from pathlib import Path
 from typing import Sequence
 from typing import Set
 
@@ -12,6 +11,7 @@ from poetry.core.packages import Package as PoetryPackage
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import constants
+from tox_poetry_installer import utilities
 
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
@@ -33,7 +33,7 @@ def install(
     )
 
     pip = _poetry.PipInstaller(
-        env=_poetry.VirtualEnv(path=Path(venv.envconfig.envdir)),
+        env=utilities.convert_virtualenv(venv),
         io=_poetry.NullIO(),
         pool=poetry.pool,
     )
@@ -49,5 +49,5 @@ def install(
             installed.add(dependency)
         else:
             tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Already installed {dependency}, skipping"
+                f"{constants.REPORTER_PREFIX} Skipping {dependency}, already installed"
             )

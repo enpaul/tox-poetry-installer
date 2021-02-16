@@ -2,13 +2,15 @@
 # Silence this one globally to support the internal function imports for the proxied poetry module.
 # See the docstring in 'tox_poetry_installer._poetry' for more context.
 # pylint: disable=import-outside-toplevel
-import sys
 import typing
+from pathlib import Path
 from typing import List
 from typing import Sequence
 from typing import Set
+from typing import Union
 
 import tox
+from poetry.core.packages import Dependency as PoetryDependency
 from poetry.core.packages import Package as PoetryPackage
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
@@ -56,80 +58,78 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
         ) from None
 
 
+def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
+    """Convert a Tox venv to a Poetry venv
+
+    :param venv: Tox ``VirtualEnv`` object representing a tox virtual environment
+    :returns: Poetry ``VirtualEnv`` object representing a poetry virtual environment
+    """
+    from tox_poetry_installer import _poetry
+
+    return _poetry.VirtualEnv(path=Path(venv.envconfig.envdir))
+
+
 def identify_transients(
-    packages: PackageMap, dep_name: str, allow_missing: Sequence[str] = ()
+    dep: Union[PoetryDependency, str],
+    packages: PackageMap,
+    venv: "_poetry.VirtualEnv",
+    allow_missing: Sequence[str] = (),
 ) -> List[PoetryPackage]:
     """Using a pool of packages, identify all transient dependencies of a given package name
 
+    :param dep: Either the Poetry dependency or the dependency's bare package name to recursively
+                identify the transient dependencies of
     :param packages: All packages from the lockfile to use for identifying dependency relationships.
-    :param dep_name: Bare name (without version) of the dependency to fetch the transient
-                            dependencies of.
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
                           packages that are not found in the lockfile but their name appears in this
                           list will be silently skipped from installation.
     :returns: List of packages that need to be installed for the requested dependency.
 
-    .. note:: The package corresponding to the dependency named by ``dep_name`` is included
-              in the list of returned packages.
+    .. note:: The package corresponding to the dependency specified by the ``dep`` parameter will
+              be included in the returned list of packages.
     """
     from tox_poetry_installer import _poetry
 
     transients: List[PoetryPackage] = []
+    searched: Set[str] = set()
 
-    searched: Set[PoetryPackage] = set()
+    def _deps_of_dep(transient: PoetryDependency):
+        searched.add(transient.name)
 
-    def find_deps_of_deps(name: str):
-        searched.add(name)
-
-        if name in _poetry.Provider.UNSAFE_PACKAGES:
-            tox.reporter.warning(
-                f"{constants.REPORTER_PREFIX} Installing package '{name}' using Poetry is not supported and will be skipped"
-            )
+        if venv.is_valid_for_marker(transient.marker):
+            for requirement in packages[transient.name].requires:
+                if requirement.name not in searched:
+                    _deps_of_dep(requirement)
             tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {name}: designated unsafe by Poetry"
+                f"{constants.REPORTER_PREFIX} Including {transient} for installation"
             )
-            return
-
-        try:
-            package = packages[name]
-        except KeyError as err:
-            if name in allow_missing:
-                tox.reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skip {name}: package is not in lockfile but designated as allowed to be missing"
-                )
-                return
-            raise err
-
-        if not package.python_constraint.allows(constants.PLATFORM_VERSION):
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible Python requirement '{package.python_constraint}' for current version '{constants.PLATFORM_VERSION}'"
-            )
-        elif package.platform is not None and package.platform != sys.platform:
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skip {package}: incompatible platform requirement '{package.platform}' for current platform '{sys.platform}'"
-            )
+            transients.append(packages[transient.name])
         else:
-            for index, dep in enumerate(package.requires):
-                tox.reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Processing {package} dependency {index + 1}/{len(package.requires)}: {dep.name}"
-                )
-                if dep.name not in searched:
-                    find_deps_of_deps(dep.name)
-                else:
-                    tox.reporter.verbosity2(
-                        f"{constants.REPORTER_PREFIX} Skip {package}: already included for installation"
-                    )
             tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Including {package} for installation"
+                f"{constants.REPORTER_PREFIX} Skipping {transient}: package requires {transient.marker}"
             )
-            transients.append(package)
 
     try:
-        find_deps_of_deps(packages[dep_name].name)
-    except KeyError:
+        if isinstance(dep, str):
+            dep = packages[dep].to_dependency()
+
+        _deps_of_dep(dep)
+    except KeyError as err:
+        dep_name = err.args[0]
+
         if dep_name in _poetry.Provider.UNSAFE_PACKAGES:
             tox.reporter.warning(
                 f"{constants.REPORTER_PREFIX} Installing package '{dep_name}' using Poetry is not supported and will be skipped"
+            )
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skipping {dep_name}: designated unsafe by Poetry"
+            )
+            return []
+
+        if dep_name in allow_missing:
+            tox.reporter.verbosity2(
+                f"{constants.REPORTER_PREFIX} Skipping {dep_name}: package is allowed to be unlocked"
             )
             return []
 
@@ -148,13 +148,17 @@ def identify_transients(
 
 
 def find_project_deps(
-    packages: PackageMap, poetry: "_poetry.Poetry", extras: Sequence[str] = ()
+    packages: PackageMap,
+    venv: "_poetry.VirtualEnv",
+    poetry: "_poetry.Poetry",
+    extras: Sequence[str] = (),
 ) -> List[PoetryPackage]:
     """Find the root project dependencies
 
     Recursively identify the dependencies of the root project package
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     :param extras: Sequence of extra names to include the dependencies of
     """
@@ -180,20 +184,24 @@ def find_project_deps(
     dependencies: List[PoetryPackage] = []
     for dep in base_deps + extra_deps:
         dependencies += identify_transients(
-            packages, dep.name.lower(), allow_missing=[poetry.package.name]
+            dep.name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
     return dependencies
 
 
 def find_additional_deps(
-    packages: PackageMap, poetry: "_poetry.Poetry", dep_names: Sequence[str]
+    packages: PackageMap,
+    venv: "_poetry.VirtualEnv",
+    poetry: "_poetry.Poetry",
+    dep_names: Sequence[str],
 ) -> List[PoetryPackage]:
     """Find additional dependencies
 
     Recursively identify the dependencies of an arbitrary list of package names
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     :param dep_names: Sequence of additional dependency names to recursively find the transient
                       dependencies for
@@ -201,24 +209,26 @@ def find_additional_deps(
     deps: List[PoetryPackage] = []
     for dep_name in dep_names:
         deps += identify_transients(
-            packages, dep_name.lower(), allow_missing=[poetry.package.name]
+            dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
     return deps
 
 
 def find_dev_deps(
-    packages: PackageMap, poetry: "_poetry.Poetry"
+    packages: PackageMap, venv: "_poetry.VirtualEnv", poetry: "_poetry.Poetry"
 ) -> List[PoetryPackage]:
     """Find the dev dependencies
 
     Recursively identify the Poetry dev dependencies
 
     :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     """
     return find_additional_deps(
         packages,
+        venv,
         poetry,
         poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),
     )
