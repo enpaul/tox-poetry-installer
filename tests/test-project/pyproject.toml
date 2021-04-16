@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "test-project"
+version = "0.0.0"
+license = "MIT"
+authors = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
+description = "A fake project for testing"
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+requests = "^2.25.1"
+tox = "^3.23.0"
+python-dateutil = "^2.8.1"
+Flask = "^1.1.2"
+toml = "^0.10.2"
+attrs = "^20.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
