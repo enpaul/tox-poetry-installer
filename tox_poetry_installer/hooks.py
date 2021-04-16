@@ -34,6 +34,14 @@ def tox_addoption(parser: ToxParser):
         help="Trigger a failure if Poetry is not available to Tox",
     )
 
+    parser.add_argument(
+        "--parallelize-locked-install",
+        type=int,
+        dest="parallelize_locked_install",
+        default=None,
+        help="Number of worker threads to use for installing dependencies from the Poetry lockfile in parallel",
+    )
+
     parser.add_testenv_attribute(
         name="install_dev_deps",
         type="bool",
@@ -143,10 +151,21 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         raise err
 
     dependencies = dev_deps + env_deps + project_deps
+    log_parallel = (
+        f" (using {venv.envconfig.config.option.parallelize_locked_install} threads)"
+        if venv.envconfig.config.option.parallelize_locked_install
+        else ""
+    )
+
     action.setactivity(
         __about__.__title__,
-        f"Installing {len(dependencies)} dependencies from Poetry lock file",
+        f"Installing {len(dependencies)} dependencies from Poetry lock file{log_parallel}",
     )
-    installer.install(poetry, venv, dependencies)
+    installer.install(
+        poetry,
+        venv,
+        dependencies,
+        venv.envconfig.config.option.parallelize_locked_install,
+    )
 
     return venv.envconfig.require_locked_deps or None
