@@ -38,7 +38,10 @@ jobs:
           # lockfile is updated
           key: ${{ runner.os }}-${{ matrix.python.toxenv }}-${{ hashFiles('**/poetry.lock') }}
       - name: Setup:env
-        run: .github/scripts/setup-env.sh
+        run: |
+          python -m pip install tox>=3.20,<3.21
+          python -m tox -e _meta --devenv $HOME/ci
+          $HOME/ci/bin/pip install pip==19.3.1
       - name: Run:${{ matrix.python.toxenv }}
         run: $HOME/ci/bin/tox -e ${{ matrix.python.toxenv }} --require-poetry
   Check:
@@ -61,7 +64,10 @@ jobs:
           # that is generated for the tests above
           key: ${{ runner.os }}-py38-${{ hashFiles('**/poetry.lock') }}
       - name: Setup:env
-        run: .github/scripts/setup-env.sh
+        run: |
+          python -m pip install tox>=3.20,<3.21
+          python -m tox -e _meta --devenv $HOME/ci
+          $HOME/ci/bin/pip install pip==19.3.1
       - name: Run:static
         run: $HOME/ci/bin/tox -e static --require-poetry
       - name: Run:static-tests
