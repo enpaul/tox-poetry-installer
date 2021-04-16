@@ -12,9 +12,9 @@ from tox.config import Parser as ToxParser
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import __about__
-from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import installer
+from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
 from tox_poetry_installer.datatypes import PackageMap
 
@@ -83,19 +83,17 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             and venv.envconfig.config.option.require_poetry
         ):
             venv.status = err.__class__.__name__
-            tox.reporter.error(str(err))
+            logger.error(str(err))
             return False
-        tox.reporter.verbosity1(str(err))
+        logger.info(str(err))
         return None
 
-    tox.reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} Loaded project pyproject.toml from {poetry.file}"
-    )
+    logger.info(f"Loaded project pyproject.toml from {poetry.file}")
 
     virtualenv = utilities.convert_virtualenv(venv)
 
     if not poetry.locker.is_fresh():
-        tox.reporter.warning(
+        logger.warning(
             f"The Poetry lock file is not up to date with the latest changes in {poetry.file}"
         )
 
@@ -112,42 +110,38 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
 
         if venv.envconfig.install_dev_deps:
             dev_deps = utilities.find_dev_deps(packages, virtualenv, poetry)
-            tox.reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} Identified {len(dev_deps)} development dependencies to install to env"
+            logger.info(
+                f"Identified {len(dev_deps)} development dependencies to install to env"
             )
         else:
             dev_deps = []
-            tox.reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} Env does not install development dependencies, skipping"
-            )
+            logger.info("Env does not install development dependencies, skipping")
 
         env_deps = utilities.find_additional_deps(
             packages, virtualenv, poetry, venv.envconfig.locked_deps
         )
 
-        tox.reporter.verbosity1(
-            f"{constants.REPORTER_PREFIX} Identified {len(env_deps)} environment dependencies to install to env"
+        logger.info(
+            f"Identified {len(env_deps)} environment dependencies to install to env"
         )
 
         if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
             project_deps = utilities.find_project_deps(
                 packages, virtualenv, poetry, venv.envconfig.extras
             )
-            tox.reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} Identified {len(project_deps)} project dependencies to install to env"
+            logger.info(
+                f"Identified {len(project_deps)} project dependencies to install to env"
             )
         else:
             project_deps = []
-            tox.reporter.verbosity1(
-                f"{constants.REPORTER_PREFIX} Env does not install project package, skipping"
-            )
+            logger.info("Env does not install project package, skipping")
     except exceptions.ToxPoetryInstallerException as err:
         venv.status = err.__class__.__name__
-        tox.reporter.error(f"{constants.REPORTER_PREFIX} {err}")
+        logger.error(str(err))
         return False
     except Exception as err:
         venv.status = "InternalError"
-        tox.reporter.error(f"{constants.REPORTER_PREFIX} Internal plugin error: {err}")
+        logger.error(f"Internal plugin error: {err}")
         raise err
 
     dependencies = dev_deps + env_deps + project_deps

@@ -9,11 +9,10 @@ from typing import Optional
 from typing import Sequence
 from typing import Set
 
-import tox
 from poetry.core.packages import Package as PoetryPackage
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
-from tox_poetry_installer import constants
+from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
 
 if typing.TYPE_CHECKING:
@@ -36,8 +35,8 @@ def install(
     """
     from tox_poetry_installer import _poetry
 
-    tox.reporter.verbosity1(
-        f"{constants.REPORTER_PREFIX} Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
+    logger.info(
+        f"Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
     )
 
     pip = _poetry.PipInstaller(
@@ -68,14 +67,8 @@ def install(
         for dependency in packages:
             if dependency not in installed:
                 installed.add(dependency)
-                tox.reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Installing {dependency}"
-                )
+                logger.debug(f"Installing {dependency}")
                 executor(pip.install, dependency)
             else:
-                tox.reporter.verbosity2(
-                    f"{constants.REPORTER_PREFIX} Skipping {dependency}, already installed"
-                )
-        tox.reporter.verbosity2(
-            f"{constants.REPORTER_PREFIX} Waiting for installs to finish..."
-        )
+                logger.debug(f"Skipping {dependency}, already installed")
+        logger.debug("Waiting for installs to finish...")

@@ -9,7 +9,6 @@ from typing import Sequence
 from typing import Set
 from typing import Union
 
-import tox
 from poetry.core.packages import Dependency as PoetryDependency
 from poetry.core.packages import Package as PoetryPackage
 from tox.action import Action as ToxAction
@@ -17,6 +16,7 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
+from tox_poetry_installer import logger
 from tox_poetry_installer.datatypes import PackageMap
 
 if typing.TYPE_CHECKING:
@@ -101,14 +101,10 @@ def identify_transients(
             for requirement in packages[transient.name].requires:
                 if requirement.name not in searched:
                     _deps_of_dep(requirement)
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Including {transient} for installation"
-            )
+            logger.debug(f"Including {transient} for installation")
             transients.append(packages[transient.name])
         else:
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skipping {transient}: package requires {transient.marker}"
-            )
+            logger.debug(f"Skipping {transient}: package requires {transient.marker}")
 
     try:
         if isinstance(dep, str):
@@ -119,18 +115,14 @@ def identify_transients(
         dep_name = err.args[0]
 
         if dep_name in _poetry.Provider.UNSAFE_PACKAGES:
-            tox.reporter.warning(
-                f"{constants.REPORTER_PREFIX} Installing package '{dep_name}' using Poetry is not supported and will be skipped"
+            logger.warning(
+                f"Installing package '{dep_name}' using Poetry is not supported and will be skipped"
             )
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skipping {dep_name}: designated unsafe by Poetry"
-            )
+            logger.debug(f"Skipping {dep_name}: designated unsafe by Poetry")
             return []
 
         if dep_name in allow_missing:
-            tox.reporter.verbosity2(
-                f"{constants.REPORTER_PREFIX} Skipping {dep_name}: package is allowed to be unlocked"
-            )
+            logger.debug(f"Skipping {dep_name}: package is allowed to be unlocked")
             return []
 
         if any(
@@ -171,9 +163,7 @@ def find_project_deps(
 
     extra_deps: List[PoetryPackage] = []
     for extra in extras:
-        tox.reporter.verbosity1(
-            f"{constants.REPORTER_PREFIX} Processing project extra '{extra}'"
-        )
+        logger.info(f"Processing project extra '{extra}'")
         try:
             extra_deps += [packages[item.name] for item in poetry.package.extras[extra]]
         except KeyError:
