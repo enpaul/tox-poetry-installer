@@ -67,3 +67,13 @@ repos:
         language: system
         types:
           - text
+
+      - id: mdformat
+        name: mdformat
+        entry: mdformat
+        language: system
+        args:
+          - "--number"
+          - "--wrap=90"
+        types:
+          - markdown
