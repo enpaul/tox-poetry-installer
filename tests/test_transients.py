@@ -1,0 +1,72 @@
+import poetry.factory
+import poetry.utils.env
+import pytest
+from poetry.puzzle.provider import Provider
+
+from .fixtures import mock_poetry_factory
+from .fixtures import mock_venv
+from tox_poetry_installer import constants
+from tox_poetry_installer import datatypes
+from tox_poetry_installer import exceptions
+from tox_poetry_installer import utilities
+
+
+def test_exclude_unsafe():
+    assert Provider.UNSAFE_PACKAGES == constants.UNSAFE_PACKAGES
+
+    for dep in constants.UNSAFE_PACKAGES:
+        assert utilities.identify_transients(dep, dict(), None) == []
+
+
+def test_allow_missing():
+    with pytest.raises(exceptions.LockedDepNotFoundError):
+        utilities.identify_transients("luke-skywalker", dict(), None)
+
+    assert (
+        utilities.identify_transients(
+            "darth-vader", dict(), None, allow_missing=["darth-vader"]
+        )
+        == []
+    )
+
+
+def test_exclude_pep508():
+    for version in [
+        "foo==1.0",
+        "foo==1",
+        "foo>2.0.0",
+        "foo<=9.3.4.7.8",
+        "foo>999,<=4.6",
+        "foo>1234 || foo<2021.01.01",
+        "foo!=7",
+        "foo~=0.8",
+        "foo!=9,==7",
+        "=>foo",
+    ]:
+        with pytest.raises(exceptions.LockedDepVersionConflictError):
+            utilities.identify_transients(version, dict(), None)
+
+
+def test_functional(mock_poetry_factory, mock_venv):
+    pypoetry = poetry.factory.Factory().create_poetry(None)
+    packages: datatypes.PackageMap = {
+        item.name: item for item in pypoetry.locker.locked_repository(False).packages
+    }
+    venv = poetry.utils.env.VirtualEnv()
+
+    requests_requires = [
+        packages["certifi"],
+        packages["chardet"],
+        packages["idna"],
+        packages["urllib3"],
+        packages["requests"],
+    ]
+
+    transients = utilities.identify_transients("requests", packages, venv)
+
+    assert all((item in requests_requires) for item in transients)
+    assert all((item in transients) for item in requests_requires)
+
+    for package in [packages["requests"], packages["tox"], packages["flask"]]:
+        transients = utilities.identify_transients(package, packages, venv)
+        assert transients[-1] == package
