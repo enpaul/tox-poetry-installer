@@ -5,6 +5,7 @@ in this module.
 
 All constants should be type hinted.
 """
+from typing import Set
 from typing import Tuple
 
 from tox_poetry_installer import __about__
@@ -17,3 +18,6 @@ PEP508_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
 # Prefix all reporter messages should include to indicate that they came from this module in the
 # console output.
 REPORTER_PREFIX: str = f"{__about__.__title__}:"
+
+# Internal list of packages that poetry has deemed unsafe and are excluded from the lockfile
+UNSAFE_PACKAGES: Set[str] = {"distribute", "pip", "setuptools", "wheel"}
