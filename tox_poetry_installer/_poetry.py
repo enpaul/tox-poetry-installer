@@ -32,7 +32,6 @@ try:
     from poetry.installation.pip_installer import PipInstaller
     from poetry.io.null_io import NullIO
     from poetry.poetry import Poetry
-    from poetry.puzzle.provider import Provider
     from poetry.utils.env import VirtualEnv
 except ImportError:
     raise exceptions.PoetryNotInstalledError(

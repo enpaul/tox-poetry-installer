@@ -89,8 +89,6 @@ def identify_transients(
     .. note:: The package corresponding to the dependency specified by the ``dep`` parameter will
               be included in the returned list of packages.
     """
-    from tox_poetry_installer import _poetry
-
     transients: List[PoetryPackage] = []
     searched: Set[str] = set()
 
@@ -114,7 +112,7 @@ def identify_transients(
     except KeyError as err:
         dep_name = err.args[0]
 
-        if dep_name in _poetry.Provider.UNSAFE_PACKAGES:
+        if dep_name in constants.UNSAFE_PACKAGES:
             logger.warning(
                 f"Installing package '{dep_name}' using Poetry is not supported and will be skipped"
             )
