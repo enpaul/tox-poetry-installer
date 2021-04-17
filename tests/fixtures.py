@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring, unused-argument, too-few-public-methods
 import time
 from pathlib import Path
 
@@ -17,18 +18,23 @@ FAKE_VENV_PATH = Path("nowhere")
 
 
 class MockVirtualEnv:
-    class MockTestenvConfig:
+    """Mock class for the :class:`poetry.utils.env.VirtualEnv` and :class:`tox.venv.VirtualEnv`"""
+
+    class MockTestenvConfig:  # pylint: disable=missing-class-docstring
         envdir = FAKE_VENV_PATH
 
     def __init__(self, *args, **kwargs):
         self.envconfig = self.MockTestenvConfig()
         self.installed = []
 
-    def is_valid_for_marker(self, *args, **kwargs):
+    @staticmethod
+    def is_valid_for_marker(*args, **kwargs):
         return True
 
 
 class MockPipInstaller:
+    """Mock class for the :class:`poetry.installation.pip_installer.PipInstaller`"""
+
     def __init__(self, env: MockVirtualEnv, **kwargs):
         self.env = env
 

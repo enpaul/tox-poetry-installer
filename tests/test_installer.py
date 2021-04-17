@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring
+# pylint: disable=missing-module-docstring, redefined-outer-name, unused-argument, wrong-import-order, unused-import
 import time
 
 import tox.venv
@@ -22,7 +22,7 @@ def test_deduplication(mock_venv, mock_poetry_factory):
 
     installer.install(poetry, venv, to_install)
 
-    assert len(set(to_install)) == len(venv.installed)
+    assert len(set(to_install)) == len(venv.installed)  # pylint: disable=no-member
 
 
 def test_parallelization(mock_venv, mock_poetry_factory):

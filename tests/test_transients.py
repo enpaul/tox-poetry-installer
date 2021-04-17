@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring, redefined-outer-name, unused-argument, wrong-import-order, unused-import
 import poetry.factory
 import poetry.utils.env
 import pytest
@@ -12,6 +13,10 @@ from tox_poetry_installer import utilities
 
 
 def test_exclude_unsafe():
+    """Test that the unsafe packages are properly excluded
+
+    Also ensure that the internal constant matches the value from Poetry
+    """
     assert Provider.UNSAFE_PACKAGES == constants.UNSAFE_PACKAGES
 
     for dep in constants.UNSAFE_PACKAGES:
@@ -19,6 +24,7 @@ def test_exclude_unsafe():
 
 
 def test_allow_missing():
+    """Test that the ``allow_missing`` parameter works as expected"""
     with pytest.raises(exceptions.LockedDepNotFoundError):
         utilities.identify_transients("luke-skywalker", dict(), None)
 
@@ -31,6 +37,7 @@ def test_allow_missing():
 
 
 def test_exclude_pep508():
+    """Test that dependencies specified in PEP508 format are properly excluded"""
     for version in [
         "foo==1.0",
         "foo==1",
@@ -48,11 +55,16 @@ def test_exclude_pep508():
 
 
 def test_functional(mock_poetry_factory, mock_venv):
+    """Integration tests for the :func:`identify_transients` function
+
+    Trivially test that it resolves dependencies properly and that the parent package
+    is always the last in the returned list.
+    """
     pypoetry = poetry.factory.Factory().create_poetry(None)
     packages: datatypes.PackageMap = {
         item.name: item for item in pypoetry.locker.locked_repository(False).packages
     }
-    venv = poetry.utils.env.VirtualEnv()
+    venv = poetry.utils.env.VirtualEnv()  # pylint: disable=no-value-for-parameter
 
     requests_requires = [
         packages["certifi"],
@@ -70,3 +82,4 @@ def test_functional(mock_poetry_factory, mock_venv):
     for package in [packages["requests"], packages["tox"], packages["flask"]]:
         transients = utilities.identify_transients(package, packages, venv)
         assert transients[-1] == package
+        assert len(transients) == len(set(transients))
