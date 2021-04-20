@@ -40,7 +40,7 @@ jobs:
       - name: Setup:env
         run: .github/scripts/setup-env.sh
       - name: Run:${{ matrix.python.toxenv }}
-        run: $HOME/ci/bin/tox -e ${{ matrix.python.toxenv }} --require-poetry
+        run: $HOME/ci/bin/tox -e ${{ matrix.python.toxenv }} --parallelize-locked-install=10
   Check:
     runs-on: ubuntu-latest
     steps:
@@ -63,8 +63,8 @@ jobs:
       - name: Setup:env
         run: .github/scripts/setup-env.sh
       - name: Run:static
-        run: $HOME/ci/bin/tox -e static --require-poetry
+        run: $HOME/ci/bin/tox -e static --parallelize-locked-install=10
       - name: Run:static-tests
-        run: $HOME/ci/bin/tox -e static-tests --require-poetry
+        run: $HOME/ci/bin/tox -e static-tests --parallelize-locked-install=10
       - name: Run:security
-        run: $HOME/ci/bin/tox -e security --require-poetry
+        run: $HOME/ci/bin/tox -e security --parallelize-locked-install=10
