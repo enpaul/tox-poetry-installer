@@ -1,6 +1,6 @@
 # pylint: disable=missing-docstring
 __title__ = "tox-poetry-installer"
-__summary__ = "Tox plugin to install Tox environment dependencies using the Poetry backend and lockfile"
+__summary__ = "A plugin for Tox that lets you install test environment dependencies from the Poetry lockfile"
 __version__ = "0.7.0"
 __url__ = "https://github.com/enpaul/tox-poetry-installer/"
 __license__ = "MIT"
