@@ -2,6 +2,21 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.7.0
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.7.0),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.7.0/)
+
+- Add runtime option `--parallelize-locked-install` to support installing locked
+  dependencies in parallel to speed up test environment creation
+- Add config option `require_poetry` to allow per-environment control over whether the
+  plugin should force an error
+- Add unit tests for custom dependency processing and installation
+- Update internal logging system to reduce code duplication
+- Update documentation to improve readability
+- Deprecate runtime option `--require-poetry`
+
 ## Version 0.6.4
 
 View this release on:
