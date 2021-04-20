@@ -57,6 +57,13 @@ def tox_addoption(parser: ToxParser):
     )
 
     parser.add_testenv_attribute(
+        name="require_poetry",
+        type="bool",
+        default=False,
+        help="Trigger a failure if Poetry is not available to Tox",
+    )
+
+    parser.add_testenv_attribute(
         name="locked_deps",
         type="line-list",
         help="List of locked dependencies to install to the environment using the Poetry lockfile",
@@ -75,12 +82,18 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
     :param action: Tox action object
     """
 
+    if venv.envconfig.config.option.require_poetry:
+        logger.warning(
+            "DEPRECATION WARNING: The '--require-poetry' runtime option is deprecated and will be "
+            "removed in version 1.0.0. Please update test environments that require Poetry to "
+            "set the 'require_poetry = true' option in tox.ini"
+        )
+
     try:
         poetry = utilities.check_preconditions(venv, action)
     except exceptions.SkipEnvironment as err:
-        if (
-            isinstance(err, exceptions.PoetryNotInstalledError)
-            and venv.envconfig.config.option.require_poetry
+        if isinstance(err, exceptions.PoetryNotInstalledError) and (
+            venv.envconfig.config.option.require_poetry or venv.envconfig.require_poetry
         ):
             venv.status = err.__class__.__name__
             logger.error(str(err))
