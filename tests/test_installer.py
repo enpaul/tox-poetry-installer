@@ -43,7 +43,7 @@ def test_parallelization(mock_venv, mock_poetry_factory):
 
     venv_sequential = tox.venv.VirtualEnv()
     start_sequential = time.time()
-    installer.install(poetry, venv_sequential, to_install, None)
+    installer.install(poetry, venv_sequential, to_install, 0)
     sequential = time.time() - start_sequential
 
     venv_parallel = tox.venv.VirtualEnv()
