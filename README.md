@@ -80,7 +80,7 @@ adding the below to `tox.ini`, though this is also not recommended:
 
 ```ini
 requires =
-    tox-poetry-installer[poetry] == 0.7.0
+    tox-poetry-installer[poetry] == 0.8.0
 ```
 
 After installing, check that Tox recognizes the plugin by running
@@ -89,7 +89,7 @@ After installing, check that Tox recognizes the plugin by running
 ```
 3.20.0 imported from .venv/lib64/python3.8/site-packages/tox/__init__.py
 registered plugins:
-    tox-poetry-installer-0.7.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
+    tox-poetry-installer-0.8.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer/__init__.py
 ```
 
 ### Quick Start
@@ -206,13 +206,16 @@ configuration section.
 All arguments listed below can be passed to the `tox` command to modify runtime behavior
 of the plugin.
 
-| Argument                       |  Type   | Default | Description                                                                                                                                                                                                                                                                                            |
-| :----------------------------- | :-----: | :-----: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--parallelize-locked-install` | Integer |   `0`   | Number of worker threads to use to install dependencies in parallel. Installing in parallel with more threads can greatly speed up the install process, but can cause race conditions during install. The default, `0`, disables the parallel install so that dependencies are installed sequentially. |
+| Argument                     |  Type   | Default | Description                                                                                                                                                                                                                                                                          |
+| :--------------------------- | :-----: | :-----: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--parallel-install-threads` | Integer |  `10`   | Number of worker threads to use to install dependencies in parallel. Installing in parallel with more threads can greatly speed up the install process, but can cause race conditions during install. Pass this option with the value `0` to entirely disable parallel installation. |
 
 > **Note:** The `--require-poetry` runtime option is deprecated and will be removed in
 > version 1.0.0. Please set `require_poetry = true` in `tox.ini` for environments that
 > should fail if Poetry is not available.
+
+> **Note:** The `--parallelize-locked-install` option is deprecated and will be removed in
+> version 1.0.0. Please use the `--parallel-install-threads` option.
 
 ### Errors
 
