@@ -59,6 +59,13 @@ def tox_addoption(parser: ToxParser):
     )
 
     parser.add_testenv_attribute(
+        name="install_project_deps",
+        type="bool",
+        default=True,
+        help="Automatically install all Poetry primary dependencies to the environment",
+    )
+
+    parser.add_testenv_attribute(
         name="require_locked_deps",
         type="bool",
         default=False,
@@ -140,7 +147,11 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             f"Identified {len(env_deps)} environment dependencies to install to env"
         )
 
-        if not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist:
+        if (
+            not venv.envconfig.skip_install
+            and not venv.envconfig.config.skipsdist
+            and venv.envconfig.install_project_deps
+        ):
             project_deps = utilities.find_project_deps(
                 packages, virtualenv, poetry, venv.envconfig.extras
             )
@@ -149,7 +160,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             )
         else:
             project_deps = []
-            logger.info("Env does not install project package, skipping")
+            logger.info("Env does not install project package dependencies, skipping")
     except exceptions.ToxPoetryInstallerException as err:
         venv.status = err.__class__.__name__
         logger.error(str(err))
