@@ -12,6 +12,7 @@ from tox.config import Parser as ToxParser
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import __about__
+from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import installer
 from tox_poetry_installer import logger
@@ -31,7 +32,7 @@ def tox_addoption(parser: ToxParser):
         "--require-poetry",
         action="store_true",
         dest="require_poetry",
-        help="Trigger a failure if Poetry is not available to Tox",
+        help="(deprecated) Trigger a failure if Poetry is not available to Tox",
     )
 
     parser.add_argument(
@@ -39,7 +40,15 @@ def tox_addoption(parser: ToxParser):
         type=int,
         dest="parallelize_locked_install",
         default=None,
-        help="Number of worker threads to use for installing dependencies from the Poetry lockfile in parallel",
+        help="(deprecated) Number of worker threads to use for installing dependencies from the Poetry lockfile in parallel",
+    )
+
+    parser.add_argument(
+        "--parallel-install-threads",
+        type=int,
+        dest="parallel_install_threads",
+        default=constants.DEFAULT_INSTALL_THREADS,
+        help="Number of locked dependencies to install simultaneously; set to 0 to disable parallel installation",
     )
 
     parser.add_testenv_attribute(
@@ -81,13 +90,6 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
     :param venv: Tox virtual environment object with configuration for the local Tox environment.
     :param action: Tox action object
     """
-
-    if venv.envconfig.config.option.require_poetry:
-        logger.warning(
-            "DEPRECATION WARNING: The '--require-poetry' runtime option is deprecated and will be "
-            "removed in version 1.0.0. Please update test environments that require Poetry to "
-            "set the 'require_poetry = true' option in tox.ini"
-        )
 
     try:
         poetry = utilities.check_preconditions(venv, action)
@@ -158,11 +160,18 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         raise err
 
     dependencies = dev_deps + env_deps + project_deps
-    log_parallel = (
-        f" (using {venv.envconfig.config.option.parallelize_locked_install} threads)"
-        if venv.envconfig.config.option.parallelize_locked_install
-        else ""
-    )
+    if (
+        venv.envconfig.config.option.parallel_install_threads
+        != constants.DEFAULT_INSTALL_THREADS
+    ):
+        parallel_threads = venv.envconfig.config.option.parallel_install_threads
+    else:
+        parallel_threads = (
+            venv.envconfig.config.option.parallelize_locked_install
+            if venv.envconfig.config.option.parallelize_locked_install is not None
+            else constants.DEFAULT_INSTALL_THREADS
+        )
+    log_parallel = f" (using {parallel_threads} threads)" if parallel_threads else ""
 
     action.setactivity(
         __about__.__title__,
@@ -172,7 +181,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         poetry,
         venv,
         dependencies,
-        venv.envconfig.config.option.parallelize_locked_install,
+        parallel_threads,
     )
 
     return venv.envconfig.require_locked_deps or None

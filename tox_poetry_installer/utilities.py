@@ -43,6 +43,19 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
             f"Skipping isolated packaging build env '{action.name}'"
         )
 
+    if venv.envconfig.config.option.require_poetry:
+        logger.warning(
+            "DEPRECATION: The '--require-poetry' runtime option is deprecated and will be "
+            "removed in version 1.0.0. Please update test environments that require Poetry to "
+            "set the 'require_poetry = true' option in tox.ini"
+        )
+
+    if venv.envconfig.config.option.parallelize_locked_install is not None:
+        logger.warning(
+            "DEPRECATION: The '--parallelize-locked-install' option is deprecated and will "
+            "be removed in version 1.0.0. Please use the '--parallel-install-threads' option."
+        )
+
     from tox_poetry_installer import _poetry
 
     try:
