@@ -5,7 +5,6 @@
 import concurrent.futures
 import contextlib
 import typing
-from typing import Optional
 from typing import Sequence
 from typing import Set
 
@@ -23,7 +22,7 @@ def install(
     poetry: "_poetry.Poetry",
     venv: ToxVirtualEnv,
     packages: Sequence[PoetryPackage],
-    parallels: Optional[int] = None,
+    parallels: int = 0,
 ):
     """Install a bunch of packages to a virtualenv
 
@@ -55,7 +54,7 @@ def install(
         enables/disables the usage of the parallel thread pooler depending on the value of
         the ``parallels`` parameter.
         """
-        if parallels:
+        if parallels > 0:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=parallels
             ) as executor:

@@ -80,7 +80,7 @@ adding the below to `tox.ini`, though this is also not recommended:
 
 ```ini
 requires =
-    tox-poetry-installer[poetry] == 0.7.0
+    tox-poetry-installer[poetry] == 0.8.0
 ```
 
 After installing, check that Tox recognizes the plugin by running
@@ -89,7 +89,7 @@ After installing, check that Tox recognizes the plugin by running
 ```
 3.20.0 imported from .venv/lib64/python3.8/site-packages/tox/__init__.py
 registered plugins:
-    tox-poetry-installer-0.7.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer.py
+    tox-poetry-installer-0.8.0 at .venv/lib64/python3.8/site-packages/tox_poetry_installer/__init__.py
 ```
 
 ### Quick Start
@@ -194,25 +194,29 @@ configuration section.
 > test environments (for example, `testenv:foo`). To override this, specify the setting in
 > the child environment with a different value.
 
-| Option                |  Type   | Default | Description                                                                                                                                                                                                                                                                                                                                                          |
-| :-------------------- | :-----: | :-----: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `locked_deps`         |  List   |  `[]`   | Names of packages to install to the test environment from the Poetry lockfile. Transient dependencies (packages required by these dependencies) are automatically included.                                                                                                                                                                                          |
-| `require_locked_deps` | Boolean |  False  | Whether the plugin should block attempts to install unlocked dependencies to the test environment. If enabled, then the [`tox_testenv_install_deps`](https://tox.readthedocs.io/en/latest/plugins.html#tox.hookspecs.tox_testenv_install_deps) plugin hook will be intercepted and an error will be raised if the test environment has the `deps` option configured. |
-| `install_dev_deps`    | Boolean |  False  | Whether all of the Poetry dev-dependencies should be installed to the test environment.                                                                                                                                                                                                                                                                              |
-| `require_poetry`      | Boolean |  False  | Whether Tox should be forced to fail if the plugin cannot import Poetry locally. If `False` then the plugin will be skipped for the test environment if Poetry cannot be imported. If `True` then the plugin will force the environment to error and the Tox run to fail.                                                                                            |
+| Option                 |  Type   | Default | Description                                                                                                                                                                                                                                                                                                                                                          |
+| :--------------------- | :-----: | :-----: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `locked_deps`          |  List   |  `[]`   | Names of packages to install to the test environment from the Poetry lockfile. Transient dependencies (packages required by these dependencies) are automatically included.                                                                                                                                                                                          |
+| `require_locked_deps`  | Boolean |  False  | Whether the plugin should block attempts to install unlocked dependencies to the test environment. If enabled, then the [`tox_testenv_install_deps`](https://tox.readthedocs.io/en/latest/plugins.html#tox.hookspecs.tox_testenv_install_deps) plugin hook will be intercepted and an error will be raised if the test environment has the `deps` option configured. |
+| `install_dev_deps`     | Boolean |  False  | Whether all of the Poetry dev-dependencies should be installed to the test environment.                                                                                                                                                                                                                                                                              |
+| `install_project_deps` | Boolean |  True   | Whether all of the Poetry primary dependencies for the project package should be installed to the test environment.                                                                                                                                                                                                                                                  |
+| `require_poetry`       | Boolean |  False  | Whether Tox should be forced to fail if the plugin cannot import Poetry locally. If `False` then the plugin will be skipped for the test environment if Poetry cannot be imported. If `True` then the plugin will force the environment to error and the Tox run to fail.                                                                                            |
 
 ### Runtime Options
 
 All arguments listed below can be passed to the `tox` command to modify runtime behavior
 of the plugin.
 
-| Argument                       |  Type   | Default | Description                                                                                                                                                                                                                                                                                            |
-| :----------------------------- | :-----: | :-----: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--parallelize-locked-install` | Integer |   `0`   | Number of worker threads to use to install dependencies in parallel. Installing in parallel with more threads can greatly speed up the install process, but can cause race conditions during install. The default, `0`, disables the parallel install so that dependencies are installed sequentially. |
+| Argument                     |  Type   | Default | Description                                                                                                                                                                                                                                                                          |
+| :--------------------------- | :-----: | :-----: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--parallel-install-threads` | Integer |  `10`   | Number of worker threads to use to install dependencies in parallel. Installing in parallel with more threads can greatly speed up the install process, but can cause race conditions during install. Pass this option with the value `0` to entirely disable parallel installation. |
 
 > **Note:** The `--require-poetry` runtime option is deprecated and will be removed in
 > version 1.0.0. Please set `require_poetry = true` in `tox.ini` for environments that
 > should fail if Poetry is not available.
+
+> **Note:** The `--parallelize-locked-install` option is deprecated and will be removed in
+> version 1.0.0. Please use the `--parallel-install-threads` option.
 
 ### Errors
 

@@ -2,6 +2,20 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.8.0
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.0),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.8.0/)
+
+- Add default installation of locked dependencies using thread workers, decreasing
+  environment provisioning times by ~90%
+- Add runtime option `--parallel-install-threads` to support configuring the number of
+  worker threads for parallel dependency installation
+- Add configuration option `install_project_deps` to support disabling the install of
+  project dependencies to an environment
+- Deprecate runtime option `--parallelize-locked-install`
+
 ## Version 0.7.0
 
 View this release on:
