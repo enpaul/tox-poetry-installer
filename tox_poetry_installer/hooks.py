@@ -20,6 +20,66 @@ from tox_poetry_installer import utilities
 from tox_poetry_installer.datatypes import PackageMap
 
 
+def _postprocess_install_project_deps(
+    testenv_config, value: Optional[str]  # pylint: disable=unused-argument
+) -> Optional[bool]:
+    """An awful hack to patch on three-state boolean logic to a config parameter
+
+    .. warning: This logic should 100% be removed in the next feature release. It's here to work
+                around a bad design for now but should not persist.
+
+    The bug filed in `#61`_ is caused by a combination of poor design and attempted cleverness. The
+    name of the ``install_project_deps`` config option implies that it has ultimate control over
+    whether the project dependencies are installed to the testenv, but this is not actually correct.
+    What it actually allows the user to do is force the project dependencies to not be installed to
+    an environment that would otherwise install them. This was intended behavior, however the
+    intention was wrong.
+
+    .. _`#61`: https://github.com/enpaul/tox-poetry-installer/issues/61
+
+    In an effort to be clever the plugin automatically skips installing project dependencies when
+    the project package is not installed to the testenv (``skip_install = true``) or if packaging
+    as a whole is disabled (``skipsdist = true``). The intention of this behavior is to install only
+    the expected dependencies to a testenv and no more. However, this conflicts with the
+    ``install_project_deps`` config option, which cannot override this behavior because it defaults
+    to ``True``. In effect, ``install_project_deps = true`` in fact means "automatically
+    determine whether to install project dependencies" and ``install_project_deps = false`` means
+    "never install the project dependencies". This is not ideal and unintuitive.
+
+    To avoid having to make a breaking change this workaround has been added to support three-state
+    logic between ``True``, ``False``, and ``None``. The ``install_project_deps`` option is now
+    parsed by Tox as a string with a default value of ``None``. If the value is not ``None`` then
+    this post processing function will try to convert it to a boolean the same way that Tox's
+    `SectionReader.getbool()`_ method does, raising an error to mimic the default behavior if it
+    can't.
+
+    .. _`SectionReader.getbool()`: https://github.com/tox-dev/tox/blob/f8459218ee5ab5753321b3eb989b7beee5b391ad/src/tox/config/__init__.py#L1724
+
+    The three states for the ``install_project_deps`` setting are:
+    * ``None`` - User did not configure the setting, package dependency installation is
+      determined automatically
+    * ``True`` - User configured the setting to ``True``, package dependencies will be installed
+    * ``False`` - User configured the setting to ``False``, package dependencies will not be
+      installed
+
+    This config option should be deprecated with the 1.0.0 release and instead an option like
+    ``always_install_project_deps`` should be added which overrides the default determination and
+    just installs the project dependencies. The counterpart (``never_install_project_deps``)
+    shouldn't be needed, since I don't think there's a real use case for that.
+    """
+    if value is None:
+        return value
+
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+
+    raise tox.exception.ConfigError(
+        f"install_project_deps: boolean value '{value}' needs to be 'True' or 'False'"
+    )
+
+
 @tox.hookimpl
 def tox_addoption(parser: ToxParser):
     """Add required configuration options to the tox INI file
@@ -60,9 +120,10 @@ def tox_addoption(parser: ToxParser):
 
     parser.add_testenv_attribute(
         name="install_project_deps",
-        type="bool",
-        default=True,
+        type="string",
+        default=None,
         help="Automatically install all Poetry primary dependencies to the environment",
+        postprocess=_postprocess_install_project_deps,
     )
 
     parser.add_testenv_attribute(
@@ -147,11 +208,15 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             f"Identified {len(env_deps)} environment dependencies to install to env"
         )
 
-        if (
-            not venv.envconfig.skip_install
-            and not venv.envconfig.config.skipsdist
-            and venv.envconfig.install_project_deps
-        ):
+        install_project_deps = (
+            venv.envconfig.install_project_deps
+            if venv.envconfig.install_project_deps is not None
+            else (
+                not venv.envconfig.skip_install and not venv.envconfig.config.skipsdist
+            )
+        )
+
+        if install_project_deps:
             project_deps = utilities.find_project_deps(
                 packages, virtualenv, poetry, venv.envconfig.extras
             )
