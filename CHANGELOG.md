@@ -2,6 +2,15 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.8.1
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.1),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.8.1/)
+
+- Fix unintuitive behavior of the `install_project_deps` option by ensuring the specified
+  value always causes the implied action
+
 ## Version 0.8.0
 
 View this release on:
