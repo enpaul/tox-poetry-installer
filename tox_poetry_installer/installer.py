@@ -5,6 +5,7 @@
 import concurrent.futures
 import contextlib
 import typing
+from datetime import datetime
 from typing import Sequence
 from typing import Set
 
@@ -46,6 +47,13 @@ def install(
 
     installed: Set[PoetryPackage] = set()
 
+    def logged_install(dependency: PoetryPackage) -> None:
+        start = datetime.now()
+        logger.debug(f"Installing {dependency}")
+        pip.install(dependency)
+        end = datetime.now()
+        logger.debug(f"Finished installing {dependency} in {end - start}")
+
     @contextlib.contextmanager
     def _optional_parallelize():
         """A bit of cheat, really
@@ -66,8 +74,8 @@ def install(
         for dependency in packages:
             if dependency not in installed:
                 installed.add(dependency)
-                logger.debug(f"Installing {dependency}")
-                executor(pip.install, dependency)
+                logger.debug(f"Queuing {dependency}")
+                executor(logged_install, dependency)
             else:
                 logger.debug(f"Skipping {dependency}, already installed")
         logger.debug("Waiting for installs to finish...")
