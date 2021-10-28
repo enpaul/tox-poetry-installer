@@ -2,6 +2,16 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.8.2
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.2),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.8.2/)
+
+- Improve debug-level logging for package installation, and time how long installing each
+  package takes. Contributed by [Rebecca
+  Turner](https://github.com/9999years).
+
 ## Version 0.8.1
 
 View this release on:
