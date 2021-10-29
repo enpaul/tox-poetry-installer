@@ -11,6 +11,7 @@ View this release on:
 - Improve debug-level logging for package installation, and time how long installing each
   package takes. Contributed by [Rebecca
   Turner](https://github.com/9999years).
+- Fix crash caused by the package-under-test depending on Poetry's unsafe dependencies ([#65](https://github.com/enpaul/tox-poetry-installer/issues/65))
 
 ## Version 0.8.1
 
