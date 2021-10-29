@@ -166,6 +166,11 @@ def find_project_deps(
     :param extras: Sequence of extra names to include the dependencies of
     """
 
+    if any(dep.name in constants.UNSAFE_PACKAGES for dep in poetry.package.requires):
+        raise exceptions.RequiresUnsafeDepError(
+            f"Project package requires one or more unsafe dependencies ({', '.join(constants.UNSAFE_PACKAGES)}) which cannot be installed with Poetry"
+        )
+
     base_deps: List[PoetryPackage] = [
         packages[item.name]
         for item in poetry.package.requires
