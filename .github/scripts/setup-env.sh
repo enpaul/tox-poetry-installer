@@ -12,10 +12,10 @@ set -e;
 # Set global vars for usage in the script, create the cache directory so we can rely
 # on that existing, then dump some diagnostic info for later reference.
 #
+PATH="$PATH:$HOME/.local/bin"
 CI_VENV=$HOME/ci;
 CI_CACHE=$HOME/.cache;
 CI_CACHE_GET_POETRY="$CI_CACHE/get-poetry.py";
-CI_POETRY=$HOME/.poetry/bin/poetry;
 CI_VENV_PIP="$CI_VENV/bin/pip";
 CI_VENV_PIP_VERSION=19.3.1;
 CI_VENV_TOX="$CI_VENV/bin/tox";
@@ -37,7 +37,7 @@ curl https://install.python-poetry.org \
   --location;
 python "$CI_CACHE_GET_POETRY" --yes 1>/dev/null;
 
-python "$CI_POETRY" --version --no-ansi;
+poetry --version --no-ansi;
 
 # ##### Setup Runtime Venv #####
 #
@@ -58,7 +58,7 @@ $CI_VENV_PIP install "pip==$CI_VENV_PIP_VERSION" \
   --upgrade \
   --quiet;
 
-VIRTUAL_ENV=$CI_VENV "$CI_POETRY" install \
+VIRTUAL_ENV=$CI_VENV poetry install \
   --extras poetry \
   --quiet \
   --no-ansi \
