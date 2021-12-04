@@ -330,9 +330,9 @@ python -c '\
 '
 ```
 
-> **Note:** To force Tox to fail if Poetry is not installed, run the `tox` command with the
-> `--require-poetry` option. See the [Runtime Options](#runtime-options) for more
-> information.
+> **Note:** To force Tox to fail if Poetry is not installed, add the `require_poetry = true`
+> option to the tox `[testenv]` configuration. See the
+> [Config Options](#configuration-options) for more information.
 
 ## Developer Documentation
 
@@ -352,8 +352,8 @@ are tracked on [Github](https://github.com/enpaul/tox-poetry-installer/releases)
   [fork the repository](https://docs.github.com/en/enterprise/2.20/user/github/getting-started-with-github/fork-a-repo)
   and [open a pull request](https://github.com/enpaul/tox-poetry-installer/compare).
 
-Developing this project requires at least [Python 3.6](https://www.python.org/downloads/)
-and at least [Poetry 1.0](https://python-poetry.org/docs/#installation). GNU Make can
+Developing this project requires [Python 3.7+](https://www.python.org/downloads/) and
+[Poetry 1.0](https://python-poetry.org/docs/#installation) or later. GNU Make can
 optionally be used to quickly setup a local development environment, but this is not
 required.
 
