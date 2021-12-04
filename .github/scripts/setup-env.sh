@@ -30,7 +30,7 @@ python --version;
 # Download the poetry install script to the cache directory and then install poetry.
 # After dump the poetry version for later reference.
 #
-curl https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py \
+curl https://install.python-poetry.org \
   --output "$CI_CACHE_GET_POETRY" \
   --silent \
   --show-error \
