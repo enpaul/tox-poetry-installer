@@ -20,19 +20,16 @@ def test_exclude_unsafe():
     assert Provider.UNSAFE_PACKAGES == constants.UNSAFE_PACKAGES
 
     for dep in constants.UNSAFE_PACKAGES:
-        assert utilities.identify_transients(dep, dict(), None) == []
+        assert not utilities.identify_transients(dep, {}, None)
 
 
 def test_allow_missing():
     """Test that the ``allow_missing`` parameter works as expected"""
     with pytest.raises(exceptions.LockedDepNotFoundError):
-        utilities.identify_transients("luke-skywalker", dict(), None)
+        utilities.identify_transients("luke-skywalker", {}, None)
 
-    assert (
-        utilities.identify_transients(
-            "darth-vader", dict(), None, allow_missing=["darth-vader"]
-        )
-        == []
+    assert not utilities.identify_transients(
+        "darth-vader", {}, None, allow_missing=["darth-vader"]
     )
 
 
@@ -51,7 +48,7 @@ def test_exclude_pep508():
         "=>foo",
     ]:
         with pytest.raises(exceptions.LockedDepVersionConflictError):
-            utilities.identify_transients(version, dict(), None)
+            utilities.identify_transients(version, {}, None)
 
 
 def test_functional(mock_poetry_factory, mock_venv):

@@ -11,24 +11,24 @@ jobs:
     strategy:
       matrix:
         python:
-          - version: 3.6
+          - version: "3.6"
             toxenv: py36
-          - version: 3.7
+          - version: "3.7"
             toxenv: py37
-          - version: 3.8
+          - version: "3.8"
             toxenv: py38
-          - version: 3.9
+          - version: "3.9"
             toxenv: py39
           - version: "3.10"
             toxenv: py310
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup:python${{ matrix.python.version }}
+      - name: Install Python ${{ matrix.python.version }}
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python.version }}
-      - name: Setup:cache
+      - name: Configure Job Cache
         uses: actions/cache@v2
         with:
           path: |
@@ -39,20 +39,22 @@ jobs:
           # will be invalidated, and thus all packages will be redownloaded, if the
           # lockfile is updated
           key: ${{ runner.os }}-${{ matrix.python.toxenv }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Setup:env
+      - name: Configure Path
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Configure Environment
         run: .github/scripts/setup-env.sh
-      - name: Run:${{ matrix.python.toxenv }}
-        run: $HOME/ci/bin/tox -e ${{ matrix.python.toxenv }}
+      - name: Run Toxenv ${{ matrix.python.toxenv }}
+        run: poetry run tox -e ${{ matrix.python.toxenv }}
   Check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup:python3.8
+      - name: Install Python 3.8
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
-      - name: Setup:cache
+      - name: Configure Job Cache
         uses: actions/cache@v2
         with:
           path: |
@@ -62,11 +64,13 @@ jobs:
           # Hardcoded 'py38' slug here lets this cache piggyback on the 'py38' cache
           # that is generated for the tests above
           key: ${{ runner.os }}-py38-${{ hashFiles('**/poetry.lock') }}
-      - name: Setup:env
+      - name: Configure Path
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Configure Environment
         run: .github/scripts/setup-env.sh
-      - name: Run:static
-        run: $HOME/ci/bin/tox -e static
-      - name: Run:static-tests
-        run: $HOME/ci/bin/tox -e static-tests
-      - name: Run:security
-        run: $HOME/ci/bin/tox -e security
+      - name: Run Static Analysis Checks
+        run: poetry run tox -e static
+      - name: Run Static Analysis Checks (Tests)
+        run: poetry run tox -e static-tests
+      - name: Run Security Checks
+        run: poetry run tox -e security

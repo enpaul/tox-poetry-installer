@@ -426,6 +426,6 @@ Everything in Beta plus...
 
 - [ ] Fully replace dependency on `poetry` with dependency on `poetry-core` ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [x] Add comprehensive unit tests
-- [ ] Add tests for each feature version of Tox between 3.8 and 3.20
+- [ ] ~Add tests for each feature version of Tox between 3.8 and 3.20~
 - [x] Add tests for Python-3.6, 3.7, 3.8, and 3.9
 - [x] Add Github Actions based CI
