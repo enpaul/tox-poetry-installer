@@ -44,10 +44,12 @@ tox = "^3.8.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.6.2"
-black = { version = "^20.8b1", allow-prereleases = true }
+black = {version = "^21.12b0", allow-prereleases = true, python = "^3.7"}
 blacken-docs = "^1.8.0"
 ipython = { version = "^7.18.1", python = "^3.7" }
-mypy = "^0.782"
+mdformat = {version = "^0.6", python = "^3.8"}
+mdformat-gfm = {version = "^0.2", python = "^3.8"}
+mypy = "^0.930"
 pre-commit = "^2.7.1"
 pre-commit-hooks = "^3.3.0"
 pylint = "^2.4.4"
@@ -57,8 +59,6 @@ reorder-python-imports = "^2.3.5"
 safety = "^1.9.0"
 toml = "^0.10.1"
 tox = "^3.20.0"
-mdformat = "^0.6.4"
-mdformat-gfm = "^0.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
