@@ -2,12 +2,13 @@
 # Silence this one globally to support the internal function imports for the proxied poetry module.
 # See the docstring in 'tox_poetry_installer._poetry' for more context.
 # pylint: disable=import-outside-toplevel
+import collections
 import typing
 from pathlib import Path
+from typing import Dict
 from typing import List
 from typing import Sequence
 from typing import Set
-from typing import Union
 
 from poetry.core.packages import Dependency as PoetryDependency
 from poetry.core.packages import Package as PoetryPackage
@@ -17,10 +18,12 @@ from tox.venv import VirtualEnv as ToxVirtualEnv
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import logger
-from tox_poetry_installer.datatypes import PackageMap
 
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
+
+
+PackageMap = Dict[str, List[PoetryPackage]]
 
 
 def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
@@ -82,16 +85,29 @@ def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
     return _poetry.VirtualEnv(path=Path(venv.envconfig.envdir))
 
 
+def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
+    """Build the mapping of package names to objects
+
+    :param poetry: Populated poetry object to load locked packages from
+    :returns: Mapping of package names to Poetry package objects
+    """
+    packages = collections.defaultdict(list)
+    for package in poetry.locker.locked_repository(True).packages:
+        packages[package.name].append(package)
+
+    return packages
+
+
 def identify_transients(
-    dep: Union[PoetryDependency, str],
+    dep_name: str,
     packages: PackageMap,
     venv: "_poetry.VirtualEnv",
     allow_missing: Sequence[str] = (),
 ) -> List[PoetryPackage]:
     """Using a pool of packages, identify all transient dependencies of a given package name
 
-    :param dep: Either the Poetry dependency or the dependency's bare package name to recursively
-                identify the transient dependencies of
+    :param dep_name: Either the Poetry dependency or the dependency's bare package name to recursively
+                     identify the transient dependencies of
     :param packages: All packages from the lockfile to use for identifying dependency relationships.
     :param venv: Poetry virtual environment to use for package compatibility checks
     :param allow_missing: Sequence of package names to allow to be missing from the lockfile. Any
@@ -102,52 +118,63 @@ def identify_transients(
     .. note:: The package corresponding to the dependency specified by the ``dep`` parameter will
               be included in the returned list of packages.
     """
-    transients: List[PoetryPackage] = []
     searched: Set[str] = set()
 
-    def _deps_of_dep(transient: PoetryDependency):
+    def _transients(transient: PoetryDependency) -> List[PoetryPackage]:
         searched.add(transient.name)
 
-        if venv.is_valid_for_marker(transient.marker):
-            for requirement in packages[transient.name].requires:
-                if requirement.name not in searched:
-                    _deps_of_dep(requirement)
-            logger.debug(f"Including {transient} for installation")
-            transients.append(packages[transient.name])
+        results: List[PoetryPackage] = []
+        for option in packages[transient.name]:
+            if venv.is_valid_for_marker(option.to_dependency().marker):
+                for requirement in option.requires:
+                    if requirement.name not in searched:
+                        results += _transients(requirement)
+                logger.debug(f"Including {option} for installation")
+                results.append(option)
+                break
         else:
-            logger.debug(f"Skipping {transient}: package requires {transient.marker}")
+            logger.debug(
+                f"Skipping {transient.name}: target python version is {'.'.join([str(item) for item in venv.get_version_info()])} but package requires {transient.marker}"
+            )
+
+        return results
 
     try:
-        if isinstance(dep, str):
-            dep = packages[dep].to_dependency()
-
-        _deps_of_dep(dep)
-    except KeyError as err:
-        dep_name = err.args[0]
-
-        if dep_name in constants.UNSAFE_PACKAGES:
+        for option in packages[dep_name]:
+            if venv.is_valid_for_marker(option.to_dependency().marker):
+                dep = option.to_dependency()
+                break
+        else:
             logger.warning(
-                f"Installing package '{dep_name}' using Poetry is not supported and will be skipped"
+                f"Skipping {dep_name}: no locked version found compatible with target python version {'.'.join([str(item) for item in venv.get_version_info()])}"
             )
-            logger.debug(f"Skipping {dep_name}: designated unsafe by Poetry")
             return []
 
-        if dep_name in allow_missing:
-            logger.debug(f"Skipping {dep_name}: package is allowed to be unlocked")
+        return _transients(dep)
+    except KeyError as err:
+        missing = err.args[0]
+
+        if missing in constants.UNSAFE_PACKAGES:
+            logger.warning(
+                f"Installing package '{missing}' using Poetry is not supported and will be skipped"
+            )
+            logger.debug(f"Skipping {missing}: designated unsafe by Poetry")
+            return []
+
+        if missing in allow_missing:
+            logger.debug(f"Skipping {missing}: package is allowed to be unlocked")
             return []
 
         if any(
-            delimiter in dep_name for delimiter in constants.PEP508_VERSION_DELIMITERS
+            delimiter in missing for delimiter in constants.PEP508_VERSION_DELIMITERS
         ):
             raise exceptions.LockedDepVersionConflictError(
-                f"Locked dependency '{dep_name}' cannot include version specifier"
+                f"Locked dependency '{missing}' cannot include version specifier"
             ) from None
 
         raise exceptions.LockedDepNotFoundError(
-            f"No version of locked dependency '{dep_name}' found in the project lockfile"
+            f"No version of locked dependency '{missing}' found in the project lockfile"
         ) from None
-
-    return transients
 
 
 def find_project_deps(
@@ -171,26 +198,24 @@ def find_project_deps(
             f"Project package requires one or more unsafe dependencies ({', '.join(constants.UNSAFE_PACKAGES)}) which cannot be installed with Poetry"
         )
 
-    base_deps: List[PoetryPackage] = [
-        packages[item.name]
-        for item in poetry.package.requires
-        if not item.is_optional()
+    required_dep_names = [
+        item.name for item in poetry.package.requires if not item.is_optional()
     ]
 
-    extra_deps: List[PoetryPackage] = []
+    extra_dep_names: List[str] = []
     for extra in extras:
         logger.info(f"Processing project extra '{extra}'")
         try:
-            extra_deps += [packages[item.name] for item in poetry.package.extras[extra]]
+            extra_dep_names += [item.name for item in poetry.package.extras[extra]]
         except KeyError:
             raise exceptions.ExtraNotFoundError(
                 f"Environment specifies project extra '{extra}' which was not found in the lockfile"
             ) from None
 
     dependencies: List[PoetryPackage] = []
-    for dep in base_deps + extra_deps:
+    for dep_name in required_dep_names + extra_dep_names:
         dependencies += identify_transients(
-            dep.name.lower(), packages, venv, allow_missing=[poetry.package.name]
+            dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
     return dependencies
@@ -212,13 +237,13 @@ def find_additional_deps(
     :param dep_names: Sequence of additional dependency names to recursively find the transient
                       dependencies for
     """
-    deps: List[PoetryPackage] = []
+    dependencies: List[PoetryPackage] = []
     for dep_name in dep_names:
-        deps += identify_transients(
+        dependencies += identify_transients(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return deps
+    return dependencies
 
 
 def find_dev_deps(
