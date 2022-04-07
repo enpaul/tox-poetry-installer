@@ -6,14 +6,14 @@ from poetry.factory import Factory
 
 from .fixtures import mock_poetry_factory
 from .fixtures import mock_venv
-from tox_poetry_installer import datatypes
 from tox_poetry_installer import installer
+from tox_poetry_installer import utilities
 
 
 def test_deduplication(mock_venv, mock_poetry_factory):
     """Test that the installer does not install duplicate dependencies"""
     poetry = Factory().create_poetry(None)
-    packages: datatypes.PackageMap = {
+    packages: utilities.PackageMap = {
         item.name: item for item in poetry.locker.locked_repository(False).packages
     }
 
@@ -28,7 +28,7 @@ def test_deduplication(mock_venv, mock_poetry_factory):
 def test_parallelization(mock_venv, mock_poetry_factory):
     """Test that behavior is consistent between parallel and non-parallel usage"""
     poetry = Factory().create_poetry(None)
-    packages: datatypes.PackageMap = {
+    packages: utilities.PackageMap = {
         item.name: item for item in poetry.locker.locked_repository(False).packages
     }
 

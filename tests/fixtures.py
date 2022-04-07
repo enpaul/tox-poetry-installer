@@ -31,6 +31,10 @@ class MockVirtualEnv:
     def is_valid_for_marker(*args, **kwargs):
         return True
 
+    @staticmethod
+    def get_version_info():
+        return (1, 2, 3)
+
 
 class MockPipInstaller:
     """Mock class for the :class:`poetry.installation.pip_installer.PipInstaller`"""
