@@ -2,6 +2,15 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.8.4
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.4),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.8.4/)
+
+- Fix issue where incompatible package versions were selected for installation when multiple
+  package versions were in the lockfile
+
 ## Version 0.8.3
 
 View this release on:
