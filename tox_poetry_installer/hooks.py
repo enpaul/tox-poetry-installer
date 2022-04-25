@@ -17,7 +17,6 @@ from tox_poetry_installer import exceptions
 from tox_poetry_installer import installer
 from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
-from tox_poetry_installer.datatypes import PackageMap
 
 
 def _postprocess_install_project_deps(
@@ -186,10 +185,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 f"Unlocked dependencies '{venv.envconfig.deps}' specified for environment '{venv.name}' which requires locked dependencies"
             )
 
-        packages: PackageMap = {
-            package.name: package
-            for package in poetry.locker.locked_repository(True).packages
-        }
+        packages = utilities.build_package_map(poetry)
 
         if venv.envconfig.install_dev_deps:
             dev_deps = utilities.find_dev_deps(packages, virtualenv, poetry)

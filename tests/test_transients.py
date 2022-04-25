@@ -7,7 +7,6 @@ from poetry.puzzle.provider import Provider
 from .fixtures import mock_poetry_factory
 from .fixtures import mock_venv
 from tox_poetry_installer import constants
-from tox_poetry_installer import datatypes
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import utilities
 
@@ -58,17 +57,15 @@ def test_functional(mock_poetry_factory, mock_venv):
     is always the last in the returned list.
     """
     pypoetry = poetry.factory.Factory().create_poetry(None)
-    packages: datatypes.PackageMap = {
-        item.name: item for item in pypoetry.locker.locked_repository(False).packages
-    }
+    packages = utilities.build_package_map(pypoetry)
     venv = poetry.utils.env.VirtualEnv()  # pylint: disable=no-value-for-parameter
 
     requests_requires = [
-        packages["certifi"],
-        packages["chardet"],
-        packages["idna"],
-        packages["urllib3"],
-        packages["requests"],
+        packages["certifi"][0],
+        packages["chardet"][0],
+        packages["idna"][0],
+        packages["urllib3"][0],
+        packages["requests"][0],
     ]
 
     transients = utilities.identify_transients("requests", packages, venv)
@@ -76,7 +73,7 @@ def test_functional(mock_poetry_factory, mock_venv):
     assert all((item in requests_requires) for item in transients)
     assert all((item in transients) for item in requests_requires)
 
-    for package in [packages["requests"], packages["tox"], packages["flask"]]:
-        transients = utilities.identify_transients(package, packages, venv)
+    for package in [packages["requests"][0], packages["tox"][0], packages["flask"][0]]:
+        transients = utilities.identify_transients(package.name, packages, venv)
         assert transients[-1] == package
         assert len(transients) == len(set(transients))
