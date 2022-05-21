@@ -230,7 +230,7 @@ error will be set to one of the "Status" values below to indicate what the error
 | `LockedDepVersionConflictError` | Indicates that an item in the `locked_deps` config option includes a [PEP-508 version specifier](https://www.python.org/dev/peps/pep-0508/#grammar) (ex: `pytest >=6.0, <6.1`).                                                 |
 | `LockedDepNotFoundError`        | Indicates that an item specified in the `locked_deps` config option does not match the name of a package in the Poetry lockfile.                                                                                                |
 | `LockedDepsRequiredError`       | Indicates that a test environment with the `require_locked_deps` config option set to `true` also specified unlocked dependencies using the [`deps`](https://tox.readthedocs.io/en/latest/config.html#conf-deps) config option. |
-| `PoetryNotInstalledError`       | Indicates that the `poetry` module could not be imported under the current runtime environment, and the `--require-poetry` flag was provided.                                                                                   |
+| `PoetryNotInstalledError`       | Indicates that the `poetry` module could not be imported under the current runtime environment, and `require_poetry = true` was specified.                                                                                      |
 | `RequiresUnsafeDepError`        | Indicates that the package-under-test depends on a package that Poetry has classified as unsafe and cannot be installed.                                                                                                        |
 
 > **Note:** One or more of these errors can be caused by the `pyproject.toml` being out of
