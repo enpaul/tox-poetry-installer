@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tox-poetry-installer"
-version = "0.8.5"
+version = "1.0a1"
 license = "MIT"
 authors = ["Ethan Paul <24588726+enpaul@users.noreply.github.com>"]
 description = "A plugin for Tox that lets you install test environment dependencies from the Poetry lockfile"
@@ -23,7 +23,6 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
@@ -35,17 +34,18 @@ classifiers = [
 poetry_installer = "tox_poetry_installer"
 
 [tool.poetry.extras]
-poetry = ["poetry"]
+poetry = ["poetry", "cleo"]
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
-poetry = {version = ">=1.0.0,<1.2", optional = true}
-poetry-core = "^1.0.0"
+python = "^3.7"
+cleo = {version = "^1.0.0a5", optional = true, allow-prereleases = true}
+poetry = {version = "1.2.0b2", optional = true, allow-prereleases = true}
+poetry-core = {version = "1.1.0b2", allow-prereleases = true}
 tox = "^3.8.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.6.2"
-black = { version = "^21.12b0", allow-prereleases = true, python = "^3.7" }
+black = "^22.3.0"
 blacken-docs = { version = "^1.8.0", python = "^3.7" }
 ipython = { version = "^7.18.1", python = "^3.7" }
 mdformat = "^0.6"
@@ -63,5 +63,5 @@ tox = "^3.20.0"
 types-toml = "^0.10.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.1.0b2"]
 build-backend = "poetry.core.masonry.api"

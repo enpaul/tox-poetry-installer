@@ -7,7 +7,7 @@ import poetry.installation.pip_installer
 import poetry.utils.env
 import pytest
 import tox
-from poetry.core.packages import Package as PoetryPackage
+from poetry.core.packages.package import Package as PoetryPackage
 
 from tox_poetry_installer import utilities
 

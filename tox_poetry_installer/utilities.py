@@ -10,8 +10,8 @@ from typing import List
 from typing import Sequence
 from typing import Set
 
-from poetry.core.packages import Dependency as PoetryDependency
-from poetry.core.packages import Package as PoetryPackage
+from poetry.core.packages.dependency import Dependency as PoetryDependency
+from poetry.core.packages.package import Package as PoetryPackage
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
@@ -92,7 +92,7 @@ def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
     :returns: Mapping of package names to Poetry package objects
     """
     packages = collections.defaultdict(list)
-    for package in poetry.locker.locked_repository(True).packages:
+    for package in poetry.locker.locked_repository().packages:
         packages[package.name].append(package)
 
     return packages

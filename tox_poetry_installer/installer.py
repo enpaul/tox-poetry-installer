@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Sequence
 from typing import Set
 
-from poetry.core.packages import Package as PoetryPackage
+from poetry.core.packages.package import Package as PoetryPackage
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
 from tox_poetry_installer import logger

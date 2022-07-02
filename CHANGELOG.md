@@ -2,6 +2,16 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 1.0a1
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/1.0a1),
+[PyPI](https://pypi.org/project/tox-poetry-installer/1.0a1/)
+
+- Drop python3.6 support, since Poetry 1.2 dropped py3.6 support
+- Support Poetry==1.2.0b2 (prerelease)
+  - Added direct dep on cleo (prerelease) to support passing in NullIO to poetry functions
+
 ## Version 0.8.5
 
 View this release on:
