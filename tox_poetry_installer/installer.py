@@ -6,7 +6,7 @@ import concurrent.futures
 import contextlib
 import typing
 from datetime import datetime
-from typing import Sequence
+from typing import Collection
 from typing import Set
 
 from poetry.core.packages.package import Package as PoetryPackage
@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 def install(
     poetry: "_poetry.Poetry",
     venv: ToxVirtualEnv,
-    packages: Sequence[PoetryPackage],
+    packages: Collection[PoetryPackage],
     parallels: int = 0,
 ):
     """Install a bunch of packages to a virtualenv

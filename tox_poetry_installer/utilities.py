@@ -182,7 +182,7 @@ def find_project_deps(
     venv: "_poetry.VirtualEnv",
     poetry: "_poetry.Poetry",
     extras: Sequence[str] = (),
-) -> List[PoetryPackage]:
+) -> Set[PoetryPackage]:
     """Find the root project dependencies
 
     Recursively identify the dependencies of the root project package
@@ -218,7 +218,7 @@ def find_project_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return dependencies
+    return set(dependencies)
 
 
 def find_additional_deps(
@@ -226,7 +226,7 @@ def find_additional_deps(
     venv: "_poetry.VirtualEnv",
     poetry: "_poetry.Poetry",
     dep_names: Sequence[str],
-) -> List[PoetryPackage]:
+) -> Set[PoetryPackage]:
     """Find additional dependencies
 
     Recursively identify the dependencies of an arbitrary list of package names
@@ -243,12 +243,12 @@ def find_additional_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return dependencies
+    return set(dependencies)
 
 
 def find_dev_deps(
     packages: PackageMap, venv: "_poetry.VirtualEnv", poetry: "_poetry.Poetry"
-) -> List[PoetryPackage]:
+) -> Set[PoetryPackage]:
     """Find the dev dependencies
 
     Recursively identify the Poetry dev dependencies
@@ -261,7 +261,11 @@ def find_dev_deps(
         packages,
         venv,
         poetry,
-        poetry.pyproject.data["tool"]["poetry"].get("group", {}).get("dev", {}).get("dependencies", {}).keys()
+        poetry.pyproject.data["tool"]["poetry"]
+        .get("group", {})
+        .get("dev", {})
+        .get("dependencies", {})
+        .keys(),
     )
 
     # Legacy pyproject.toml poetry format:

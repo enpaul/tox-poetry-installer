@@ -193,7 +193,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 f"Identified {len(dev_deps)} development dependencies to install to env"
             )
         else:
-            dev_deps = []
+            dev_deps = set()
             logger.info("Env does not install development dependencies, skipping")
 
         env_deps = utilities.find_additional_deps(
@@ -220,7 +220,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
                 f"Identified {len(project_deps)} project dependencies to install to env"
             )
         else:
-            project_deps = []
+            project_deps = set()
             logger.info("Env does not install project package dependencies, skipping")
     except exceptions.ToxPoetryInstallerException as err:
         venv.status = err.__class__.__name__
@@ -231,7 +231,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         logger.error(f"Internal plugin error: {err}")
         raise err
 
-    dependencies = dev_deps + env_deps + project_deps
+    dependencies = dev_deps | env_deps | project_deps
     if (
         venv.envconfig.config.option.parallel_install_threads
         != constants.DEFAULT_INSTALL_THREADS
