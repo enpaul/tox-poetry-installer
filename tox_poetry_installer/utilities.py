@@ -257,9 +257,20 @@ def find_dev_deps(
     :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     """
-    return find_additional_deps(
+    dev_group_deps = find_additional_deps(
+        packages,
+        venv,
+        poetry,
+        poetry.pyproject.data["tool"]["poetry"].get("group", {}).get("dev", {}).get("dependencies", {}).keys()
+    )
+
+    # Legacy pyproject.toml poetry format:
+    legacy_dev_group_deps = find_additional_deps(
         packages,
         venv,
         poetry,
         poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),
     )
+
+    # Poetry 1.2 unions these two toml sections.
+    return dev_group_deps | legacy_dev_group_deps

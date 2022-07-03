@@ -43,7 +43,7 @@ poetry = {version = "1.2.0b2", optional = true, allow-prereleases = true}
 poetry-core = {version = "1.1.0b2", allow-prereleases = true}
 tox = "^3.8.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 bandit = "^1.6.2"
 black = "^22.3.0"
 blacken-docs = { version = "^1.8.0", python = "^3.7" }
