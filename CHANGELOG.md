@@ -9,7 +9,7 @@ View this release on:
 [PyPI](https://pypi.org/project/tox-poetry-installer/1.0a1/)
 
 - Drop python3.6 support, since Poetry 1.2 dropped py3.6 support
-- Support Poetry==1.2.0b2 (prerelease)
+- Support Poetry==1.2.0b3 (prerelease)
   - Added direct dep on cleo (prerelease) to support passing in NullIO to poetry functions
 
 ## Version 0.8.5

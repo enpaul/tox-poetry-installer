@@ -39,8 +39,8 @@ poetry = ["poetry", "cleo"]
 [tool.poetry.dependencies]
 python = "^3.7"
 cleo = {version = "^1.0.0a5", optional = true, allow-prereleases = true}
-poetry = {version = "1.2.0b2", optional = true, allow-prereleases = true}
-poetry-core = {version = "1.1.0b2", allow-prereleases = true}
+poetry = {version = "1.2.0b3", optional = true, allow-prereleases = true}
+poetry-core = {version = "1.1.0b3", allow-prereleases = true}
 tox = "^3.8.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -63,5 +63,5 @@ tox = "^3.20.0"
 types-toml = "^0.10.1"
 
 [build-system]
-requires = ["poetry-core>=1.1.0b2"]
+requires = ["poetry-core>=1.1.0b3"]
 build-backend = "poetry.core.masonry.api"
