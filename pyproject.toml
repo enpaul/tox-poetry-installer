@@ -45,8 +45,8 @@ tox = "^3.8.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.6.2"
-black = {version = "^21.12b0", allow-prereleases = true, python = "^3.7"}
-blacken-docs = "^1.8.0"
+black = { version = "^21.12b0", allow-prereleases = true, python = "^3.7" }
+blacken-docs = { version = "^1.8.0", python = "^3.7" }
 ipython = { version = "^7.18.1", python = "^3.7" }
 mdformat = "^0.6"
 mdformat-gfm = "^0.2"

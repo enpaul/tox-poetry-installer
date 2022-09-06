@@ -2,6 +2,14 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.8.5
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.5),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.8.5/)
+
+- Fix Poetry version specification supporting the incompatible Poetry-1.2.0 release
+
 ## Version 0.8.4
 
 View this release on:
