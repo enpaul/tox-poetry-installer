@@ -2,7 +2,7 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
-## Version 0.9
+## Version 0.9.0
 
 View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.9.0),

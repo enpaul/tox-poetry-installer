@@ -34,7 +34,7 @@ See the
 [Changelog](https://github.com/enpaul/tox-poetry-installer/blob/devel/CHANGELOG.md) for
 release history.
 
-*See also: [official Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html), [Poetry-Dev-Dependencies Tox plugin](https://github.com/sinoroc/tox-poetry-dev-dependencies), [Poetry Tox plugin](https://github.com/tkukushkin/tox-poetry)*
+*See also: [official Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html), [Poetry Tox plugin](https://github.com/tkukushkin/tox-poetry)*
 
 ## Feature Overview
 
@@ -353,7 +353,7 @@ are tracked on [Github](https://github.com/enpaul/tox-poetry-installer/releases)
   and [open a pull request](https://github.com/enpaul/tox-poetry-installer/compare).
 
 Developing this project requires [Python 3.7+](https://www.python.org/downloads/) and
-[Poetry 1.0](https://python-poetry.org/docs/#installation) or later. GNU Make can
+[Poetry 1.2](https://python-poetry.org/docs/#installation) or later. GNU Make can
 optionally be used to quickly setup a local development environment, but this is not
 required.
 
@@ -368,18 +368,11 @@ git clone git@github.com:enpaul/tox-poetry-installer.git
 
 cd tox-poetry-installer/
 
-# Create and configure the local development environment...
-# ...with make:
+# Create and configure the local development environment
 make dev
-# ...manually:
-poetry install -E poetry --remove-untracked
-poetry run pre-commit install
 
-# Run tests and CI locally...
-# ...with make:
+# Run tests and CI locally
 make test
-# ...manually:
-poetry run tox --recreate
 
 # See additional make targets
 make help
