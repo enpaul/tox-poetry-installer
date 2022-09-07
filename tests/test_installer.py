@@ -14,7 +14,7 @@ def test_deduplication(mock_venv, mock_poetry_factory):
     """Test that the installer does not install duplicate dependencies"""
     poetry = Factory().create_poetry(None)
     packages: utilities.PackageMap = {
-        item.name: item for item in poetry.locker.locked_repository(False).packages
+        item.name: item for item in poetry.locker.locked_repository().packages
     }
 
     venv = tox.venv.VirtualEnv()
@@ -29,7 +29,7 @@ def test_parallelization(mock_venv, mock_poetry_factory):
     """Test that behavior is consistent between parallel and non-parallel usage"""
     poetry = Factory().create_poetry(None)
     packages: utilities.PackageMap = {
-        item.name: item for item in poetry.locker.locked_repository(False).packages
+        item.name: item for item in poetry.locker.locked_repository().packages
     }
 
     to_install = [

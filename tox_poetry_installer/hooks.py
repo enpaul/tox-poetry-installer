@@ -231,7 +231,7 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         logger.error(f"Internal plugin error: {err}")
         raise err
 
-    dependencies = dev_deps + env_deps + project_deps
+    dependencies = utilities.dedupe_packages(dev_deps + env_deps + project_deps)
     if (
         venv.envconfig.config.option.parallel_install_threads
         != constants.DEFAULT_INSTALL_THREADS

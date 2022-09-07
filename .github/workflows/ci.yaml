@@ -7,12 +7,11 @@ on:
     branches: ["devel"]
 jobs:
   Test:
+    name: Python ${{ matrix.python.version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python:
-          - version: "3.6"
-            toxenv: py36
           - version: "3.7"
             toxenv: py37
           - version: "3.8"
@@ -21,15 +20,18 @@ jobs:
             toxenv: py39
           - version: "3.10"
             toxenv: py310
+      fail-fast: true
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Install Python ${{ matrix.python.version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python.version }}
+
       - name: Configure Job Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/pip
@@ -39,38 +41,49 @@ jobs:
           # will be invalidated, and thus all packages will be redownloaded, if the
           # lockfile is updated
           key: ${{ runner.os }}-${{ matrix.python.toxenv }}-${{ hashFiles('**/poetry.lock') }}
+
       - name: Configure Path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Configure Environment
         run: .github/scripts/setup-env.sh
+
       - name: Run Toxenv ${{ matrix.python.toxenv }}
         run: poetry run tox -e ${{ matrix.python.toxenv }}
+
   Check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Python 3.8
-        uses: actions/setup-python@v1
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: "3.10"
+
       - name: Configure Job Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/pip
             ~/.cache/pypoetry/cache
             ~/.poetry
-          # Hardcoded 'py38' slug here lets this cache piggyback on the 'py38' cache
+          # Hardcoded 'py310' slug here lets this cache piggyback on the 'py310' cache
           # that is generated for the tests above
-          key: ${{ runner.os }}-py38-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-py310-${{ hashFiles('**/poetry.lock') }}
+
       - name: Configure Path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Configure Environment
         run: .github/scripts/setup-env.sh
+
       - name: Run Static Analysis Checks
         run: poetry run tox -e static
+
       - name: Run Static Analysis Checks (Tests)
         run: poetry run tox -e static-tests
+
       - name: Run Security Checks
         run: poetry run tox -e security

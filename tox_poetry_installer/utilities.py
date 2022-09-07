@@ -10,8 +10,8 @@ from typing import List
 from typing import Sequence
 from typing import Set
 
-from poetry.core.packages import Dependency as PoetryDependency
-from poetry.core.packages import Package as PoetryPackage
+from poetry.core.packages.dependency import Dependency as PoetryDependency
+from poetry.core.packages.package import Package as PoetryPackage
 from tox.action import Action as ToxAction
 from tox.venv import VirtualEnv as ToxVirtualEnv
 
@@ -92,7 +92,7 @@ def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
     :returns: Mapping of package names to Poetry package objects
     """
     packages = collections.defaultdict(list)
-    for package in poetry.locker.locked_repository(True).packages:
+    for package in poetry.locker.locked_repository().packages:
         packages[package.name].append(package)
 
     return packages
@@ -218,7 +218,7 @@ def find_project_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return dependencies
+    return dedupe_packages(dependencies)
 
 
 def find_additional_deps(
@@ -243,7 +243,7 @@ def find_additional_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return dependencies
+    return dedupe_packages(dependencies)
 
 
 def find_dev_deps(
@@ -257,9 +257,35 @@ def find_dev_deps(
     :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     """
-    return find_additional_deps(
+    dev_group_deps = find_additional_deps(
+        packages,
+        venv,
+        poetry,
+        poetry.pyproject.data["tool"]["poetry"]
+        .get("group", {})
+        .get("dev", {})
+        .get("dependencies", {})
+        .keys(),
+    )
+
+    # Legacy pyproject.toml poetry format:
+    legacy_dev_group_deps = find_additional_deps(
         packages,
         venv,
         poetry,
         poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),
     )
+
+    # Poetry 1.2 unions these two toml sections.
+    return dedupe_packages(dev_group_deps + legacy_dev_group_deps)
+
+
+def dedupe_packages(packages: Sequence[PoetryPackage]) -> List[PoetryPackage]:
+    """Deduplicates a sequence of PoetryPackages while preserving ordering
+
+    Adapted from StackOverflow: https://stackoverflow.com/a/480227
+    """
+    seen: Set[PoetryPackage] = set()
+    # Make this faster, avoid method lookup below
+    seen_add = seen.add
+    return [p for p in packages if not (p in seen or seen_add(p))]

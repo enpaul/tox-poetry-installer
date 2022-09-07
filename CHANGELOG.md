@@ -2,6 +2,19 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.9
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.9.0),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.9.0/)
+
+- Add support for Poetry-1.2.x (#73)
+- Update Black formatting to stable release version
+- Remove support for Python-3.6
+- Remove support for Poetry-1.1.x
+- Fix installing dependencies multiple times when transient dependencies are duplicated in
+  the dependency tree
+
 ## Version 0.8.5
 
 View this release on:

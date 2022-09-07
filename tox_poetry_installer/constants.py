@@ -20,7 +20,8 @@ PEP508_VERSION_DELIMITERS: Tuple[str, ...] = ("~=", "==", "!=", ">", "<")
 REPORTER_PREFIX: str = f"{__about__.__title__}:"
 
 # Internal list of packages that poetry has deemed unsafe and are excluded from the lockfile
-UNSAFE_PACKAGES: Set[str] = {"distribute", "pip", "setuptools", "wheel"}
+# TODO: This functionality is no longer needed, should remove in a future update.
+UNSAFE_PACKAGES: Set[str] = set()
 
 # Number of threads to use for installing dependencies by default
 DEFAULT_INSTALL_THREADS: int = 10
