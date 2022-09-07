@@ -182,7 +182,7 @@ def find_project_deps(
     venv: "_poetry.VirtualEnv",
     poetry: "_poetry.Poetry",
     extras: Sequence[str] = (),
-) -> Set[PoetryPackage]:
+) -> List[PoetryPackage]:
     """Find the root project dependencies
 
     Recursively identify the dependencies of the root project package
@@ -218,7 +218,7 @@ def find_project_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return set(dependencies)
+    return dedupe_packages(dependencies)
 
 
 def find_additional_deps(
@@ -226,7 +226,7 @@ def find_additional_deps(
     venv: "_poetry.VirtualEnv",
     poetry: "_poetry.Poetry",
     dep_names: Sequence[str],
-) -> Set[PoetryPackage]:
+) -> List[PoetryPackage]:
     """Find additional dependencies
 
     Recursively identify the dependencies of an arbitrary list of package names
@@ -243,12 +243,12 @@ def find_additional_deps(
             dep_name.lower(), packages, venv, allow_missing=[poetry.package.name]
         )
 
-    return set(dependencies)
+    return dedupe_packages(dependencies)
 
 
 def find_dev_deps(
     packages: PackageMap, venv: "_poetry.VirtualEnv", poetry: "_poetry.Poetry"
-) -> Set[PoetryPackage]:
+) -> List[PoetryPackage]:
     """Find the dev dependencies
 
     Recursively identify the Poetry dev dependencies
@@ -277,4 +277,15 @@ def find_dev_deps(
     )
 
     # Poetry 1.2 unions these two toml sections.
-    return dev_group_deps | legacy_dev_group_deps
+    return dedupe_packages(dev_group_deps + legacy_dev_group_deps)
+
+
+def dedupe_packages(packages: Sequence[PoetryPackage]) -> List[PoetryPackage]:
+    """Deduplicates a sequence of PoetryPackages while preserving ordering
+
+    Adapted from StackOverflow: https://stackoverflow.com/a/480227
+    """
+    seen: Set[PoetryPackage] = set()
+    # Make this faster, avoid method lookup below
+    seen_add = seen.add
+    return [p for p in packages if not (p in seen or seen_add(p))]

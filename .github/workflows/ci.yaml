@@ -69,7 +69,7 @@ jobs:
             ~/.cache/pip
             ~/.cache/pypoetry/cache
             ~/.poetry
-          # Hardcoded 'py310' slug here lets this cache piggyback on the 'py38' cache
+          # Hardcoded 'py310' slug here lets this cache piggyback on the 'py310' cache
           # that is generated for the tests above
           key: ${{ runner.os }}-py310-${{ hashFiles('**/poetry.lock') }}
 
