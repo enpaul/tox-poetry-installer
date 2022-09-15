@@ -4,6 +4,7 @@ All implementations of tox hooks are defined here, as well as any single-use hel
 specifically related to implementing the hooks (to keep the size/readability of the hook functions
 themselves manageable).
 """
+from itertools import chain
 from typing import Optional
 
 import tox
@@ -118,6 +119,13 @@ def tox_addoption(parser: ToxParser):
     )
 
     parser.add_testenv_attribute(
+        name="poetry_dep_groups",
+        type="line-list",
+        default=[],
+        help="List of Poetry dependency groups to install to the environment",
+    )
+
+    parser.add_testenv_attribute(
         name="install_project_deps",
         type="string",
         default=None,
@@ -196,6 +204,20 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
             dev_deps = []
             logger.info("Env does not install development dependencies, skipping")
 
+        group_deps = utilities.dedupe_packages(
+            list(
+                chain(
+                    *[
+                        utilities.find_group_deps(group, packages, virtualenv, poetry)
+                        for group in venv.envconfig.poetry_dep_groups
+                    ]
+                )
+            )
+        )
+        logger.info(
+            f"Identified {len(group_deps)} group dependencies to install to env"
+        )
+
         env_deps = utilities.find_additional_deps(
             packages, virtualenv, poetry, venv.envconfig.locked_deps
         )
@@ -231,7 +253,9 @@ def tox_testenv_install_deps(venv: ToxVirtualEnv, action: ToxAction) -> Optional
         logger.error(f"Internal plugin error: {err}")
         raise err
 
-    dependencies = utilities.dedupe_packages(dev_deps + env_deps + project_deps)
+    dependencies = utilities.dedupe_packages(
+        dev_deps + group_deps + env_deps + project_deps
+    )
     if (
         venv.envconfig.config.option.parallel_install_threads
         != constants.DEFAULT_INSTALL_THREADS

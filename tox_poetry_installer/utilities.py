@@ -246,6 +246,33 @@ def find_additional_deps(
     return dedupe_packages(dependencies)
 
 
+def find_group_deps(
+    group: str,
+    packages: PackageMap,
+    venv: "_poetry.VirtualEnv",
+    poetry: "_poetry.Poetry",
+) -> List[PoetryPackage]:
+    """Find the dependencies belonging to a dependency group
+
+    Recursively identify the Poetry dev dependencies
+
+    :param group: Name of the dependency group from the project's ``pyproject.toml``
+    :param packages: Mapping of all locked package names to their corresponding package object
+    :param venv: Poetry virtual environment to use for package compatibility checks
+    :param poetry: Poetry object for the current project
+    """
+    return find_additional_deps(
+        packages,
+        venv,
+        poetry,
+        poetry.pyproject.data["tool"]["poetry"]
+        .get("group", {})
+        .get(group, {})
+        .get("dependencies", {})
+        .keys(),
+    )
+
+
 def find_dev_deps(
     packages: PackageMap, venv: "_poetry.VirtualEnv", poetry: "_poetry.Poetry"
 ) -> List[PoetryPackage]:
@@ -257,16 +284,7 @@ def find_dev_deps(
     :param venv: Poetry virtual environment to use for package compatibility checks
     :param poetry: Poetry object for the current project
     """
-    dev_group_deps = find_additional_deps(
-        packages,
-        venv,
-        poetry,
-        poetry.pyproject.data["tool"]["poetry"]
-        .get("group", {})
-        .get("dev", {})
-        .get("dependencies", {})
-        .keys(),
-    )
+    dev_group_deps = find_group_deps("dev", packages, venv, poetry)
 
     # Legacy pyproject.toml poetry format:
     legacy_dev_group_deps = find_additional_deps(
