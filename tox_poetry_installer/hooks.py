@@ -115,7 +115,7 @@ def tox_addoption(parser: ToxParser):
         name="install_dev_deps",
         type="bool",
         default=False,
-        help="Automatically install all Poetry development dependencies to the environment",
+        help="(deprecated) Automatically install all Poetry development dependencies to the environment",
     )
 
     parser.add_testenv_attribute(
