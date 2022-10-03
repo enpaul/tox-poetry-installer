@@ -2,13 +2,23 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.10.0
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.10.0),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.10.0/)
+
+- Add option to support installing groups of Poetry dependencies. Contributed by
+  [Oshmoun](https://github.com/oshmoun) (#76)
+
 ## Version 0.9.0
 
 View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.9.0),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.9.0/)
 
-- Add support for Poetry-1.2.x (#73)
+- Add support for Poetry-1.2.x. Contributed by [Justin Wood](https://github.com/Callek)
+  (#73)
 - Update Black formatting to stable release version
 - Remove support for Python-3.6
 - Remove support for Poetry-1.1.x
@@ -48,7 +58,7 @@ View this release on:
 
 - Improve debug-level logging for package installation, and time how long installing each
   package takes. Contributed by [Rebecca
-  Turner](https://github.com/9999years).
+  Turner](https://github.com/9999years) (#63).
 - Fix crash caused by the package-under-test depending on Poetry's unsafe dependencies ([#65](https://github.com/enpaul/tox-poetry-installer/issues/65))
 
 ## Version 0.8.1
