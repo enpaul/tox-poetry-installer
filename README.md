@@ -151,18 +151,22 @@ commands = ...
 > the child environment with a different value.
 
 Alternatively, we can skip specifying all of our dependencies for a test environment in
-the Tox config and just install all of our Poetry dev-dependencies automatically:
+the Tox config and install Poetry dependency groups directly:
 
 ```ini
 [testenv]
 description = Some very cool tests
 require_locked_deps = true
-install_dev_deps = true
+poetry_dep_groups =
+    dev
 commands = ...
 ```
 
-> **Note:** Setting `install_dev_deps = true` on an environment that also installs the
+> **Note:** Setting `poetry_dep_groups = [dev]` on an environment that also installs the
 > project package is functionally equivalent to running `poetry install`.
+
+> **Note:** The `install_dev_deps` configuration option is deprecated. See \[Configuration
+> Options\](#configuration-options\] for more information.
 
 Finally, we can also install an unlocked dependency (a dependency which doesn't take its
 version from the Poetry lockfile) into the test environment alongside the locked ones. We
