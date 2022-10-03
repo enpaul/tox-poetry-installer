@@ -8,8 +8,9 @@ View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.10.0),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.10.0/)
 
-- Add option to support installing groups of Poetry dependencies. Contributed by
-  [Oshmoun](https://github.com/oshmoun) (#76)
+- Add `poetry_dep_groups` option to support installing groups of Poetry dependencies.
+  Contributed by [Oshmoun](https://github.com/oshmoun) (#76)
+- Deprecate `install_dev_deps` option
 
 ## Version 0.9.0
 
