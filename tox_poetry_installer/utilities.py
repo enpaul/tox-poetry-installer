@@ -59,6 +59,13 @@ def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poet
             "be removed in version 1.0.0. Please use the '--parallel-install-threads' option."
         )
 
+    if venv.envconfig.install_dev_deps:
+        logger.warning(
+            "DEPRECATION: The 'install_dev_deps' option is deprecated and will be removed in "
+            "version 1.0.0. Please update test environments that install development dependencies "
+            "to set the 'poetry_dev_groups = [dev]' option in tox.ini"
+        )
+
     from tox_poetry_installer import _poetry
 
     try:

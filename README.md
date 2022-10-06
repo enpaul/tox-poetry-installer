@@ -41,9 +41,9 @@ release history.
 - Manage package versions in exactly one place and with exactly one tool: Poetry.
 - Ensure CI/CD and other automation tools are using the same package versions that you are
   in your local development environment.
-- Add only the packages you need to a Tox test environment, instead of everything in your
-  lockfile.
-- Directly integrate with Poetry, re-using your existing package indexes and credentials
+- Add only the packages or custom groups you need to a Tox test environment, instead of
+  everything in your lockfile.
+- Directly integrate with Poetry, re-using your existing package indexes and credentials,
   with no additional configuration.
 - Wherever possible, built-in Tox config options are always respected and their behavior
   kept consistent.
@@ -151,18 +151,22 @@ commands = ...
 > the child environment with a different value.
 
 Alternatively, we can skip specifying all of our dependencies for a test environment in
-the Tox config and just install all of our Poetry dev-dependencies automatically:
+the Tox config and install Poetry dependency groups directly:
 
 ```ini
 [testenv]
 description = Some very cool tests
 require_locked_deps = true
-install_dev_deps = true
+poetry_dep_groups =
+    dev
 commands = ...
 ```
 
-> **Note:** Setting `install_dev_deps = true` on an environment that also installs the
+> **Note:** Setting `poetry_dep_groups = [dev]` on an environment that also installs the
 > project package is functionally equivalent to running `poetry install`.
+
+> **Note:** The `install_dev_deps` configuration option is deprecated. See \[Configuration
+> Options\](#configuration-options\] for more information.
 
 Finally, we can also install an unlocked dependency (a dependency which doesn't take its
 version from the Poetry lockfile) into the test environment alongside the locked ones. We
@@ -198,10 +202,13 @@ configuration section.
 | :--------------------- | :-----: | :-----: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `locked_deps`          |  List   |  `[]`   | Names of packages to install to the test environment from the Poetry lockfile. Transient dependencies (packages required by these dependencies) are automatically included.                                                                                                                                                                                          |
 | `require_locked_deps`  | Boolean |  False  | Whether the plugin should block attempts to install unlocked dependencies to the test environment. If enabled, then the [`tox_testenv_install_deps`](https://tox.readthedocs.io/en/latest/plugins.html#tox.hookspecs.tox_testenv_install_deps) plugin hook will be intercepted and an error will be raised if the test environment has the `deps` option configured. |
-| `install_dev_deps`     | Boolean |  False  | Whether all of the Poetry dev-dependencies should be installed to the test environment.                                                                                                                                                                                                                                                                              |
 | `install_project_deps` | Boolean |  True   | Whether all of the Poetry primary dependencies for the project package should be installed to the test environment.                                                                                                                                                                                                                                                  |
 | `require_poetry`       | Boolean |  False  | Whether Tox should be forced to fail if the plugin cannot import Poetry locally. If `False` then the plugin will be skipped for the test environment if Poetry cannot be imported. If `True` then the plugin will force the environment to error and the Tox run to fail.                                                                                            |
 | `poetry_dep_groups`    |  List   |  `[]`   | Names of Poetry dependency groups specified in `pyproject.toml` to install to the test environment.                                                                                                                                                                                                                                                                  |
+
+> **Note:** The `install_dev_deps` configuration option is deprecated and will be removed in
+> version 1.0.0. Please set `poetry_dep_groups = [dev]` in `tox.ini` for environments that
+> install the development dependencies.
 
 ### Runtime Options
 
