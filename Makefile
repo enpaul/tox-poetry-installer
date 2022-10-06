@@ -33,7 +33,7 @@ test: ## Run the project testsuite(s)
 	poetry run tox --recreate
 
 dev: ## Create the local dev environment
-	poetry install -E poetry --sync
+	poetry install --extras poetry --sync
 	poetry run pre-commit install
 
 publish: test wheel source ## Build and upload to pypi (requires $PYPI_API_KEY be set)
