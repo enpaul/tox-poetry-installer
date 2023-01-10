@@ -10,7 +10,7 @@ from typing import Collection
 from typing import Set
 
 from poetry.core.packages.package import Package as PoetryPackage
-from tox.venv import VirtualEnv as ToxVirtualEnv
+from tox.tox_env.api import ToxEnv as ToxVirtualEnv
 
 from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
@@ -35,9 +35,7 @@ def install(
     """
     from tox_poetry_installer import _poetry
 
-    logger.info(
-        f"Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
-    )
+    logger.info(f"Installing {len(packages)} packages to environment at {venv.env_dir}")
 
     pip = _poetry.PipInstaller(
         env=utilities.convert_virtualenv(venv),

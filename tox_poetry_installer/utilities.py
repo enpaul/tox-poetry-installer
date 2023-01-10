@@ -12,8 +12,8 @@ from typing import Set
 
 from poetry.core.packages.dependency import Dependency as PoetryDependency
 from poetry.core.packages.package import Package as PoetryPackage
-from tox.action import Action as ToxAction
-from tox.venv import VirtualEnv as ToxVirtualEnv
+from tox.tox_env.api import ToxEnv as ToxVirtualEnv
+from tox.tox_env.package import PackageToxEnv
 
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
@@ -26,50 +26,28 @@ if typing.TYPE_CHECKING:
 PackageMap = Dict[str, List[PoetryPackage]]
 
 
-def check_preconditions(venv: ToxVirtualEnv, action: ToxAction) -> "_poetry.Poetry":
+def check_preconditions(venv: ToxVirtualEnv) -> "_poetry.Poetry":
     """Check that the local project environment meets expectations"""
+
     # Skip running the plugin for the provisioning environment. The provisioned environment,
     # for alternative Tox versions and/or the ``requires`` meta dependencies is specially
     # handled by Tox and is out of scope for this plugin. Since one of the ways to install this
     # plugin in the first place is via the Tox provisioning environment, it quickly becomes a
     # chicken-and-egg problem.
-    if action.name == venv.envconfig.config.provision_tox_env:
-        raise exceptions.SkipEnvironment(
-            f"Skipping Tox provisioning env '{action.name}'"
-        )
+    if isinstance(venv, PackageToxEnv):
+        raise exceptions.SkipEnvironment(f"Skipping Tox provisioning env '{venv.name}'")
 
-    # Skip running the plugin for the packaging environment. PEP-517 front ends can handle
-    # that better than we can, so let them do their thing. More to the point: if you're having
-    # problems in the packaging env that this plugin would solve, god help you.
-    if action.name == venv.envconfig.config.isolated_build_env:
-        raise exceptions.SkipEnvironment(
-            f"Skipping isolated packaging build env '{action.name}'"
-        )
-
-    if venv.envconfig.config.option.require_poetry:
+    if venv.conf["require_poetry"]:
         logger.warning(
             "DEPRECATION: The '--require-poetry' runtime option is deprecated and will be "
             "removed in version 1.0.0. Please update test environments that require Poetry to "
             "set the 'require_poetry = true' option in tox.ini"
         )
 
-    if venv.envconfig.config.option.parallelize_locked_install is not None:
-        logger.warning(
-            "DEPRECATION: The '--parallelize-locked-install' option is deprecated and will "
-            "be removed in version 1.0.0. Please use the '--parallel-install-threads' option."
-        )
-
-    if venv.envconfig.install_dev_deps:
-        logger.warning(
-            "DEPRECATION: The 'install_dev_deps' option is deprecated and will be removed in "
-            "version 1.0.0. Please update test environments that install development dependencies "
-            "to set the 'poetry_dev_groups = [dev]' option in tox.ini"
-        )
-
     from tox_poetry_installer import _poetry
 
     try:
-        return _poetry.Factory().create_poetry(venv.envconfig.config.toxinidir)
+        return _poetry.Factory().create_poetry(venv.core["tox_root"])
     # Support running the plugin when the current tox project does not use Poetry for its
     # environment/dependency management.
     #
@@ -89,7 +67,7 @@ def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
     """
     from tox_poetry_installer import _poetry
 
-    return _poetry.VirtualEnv(path=Path(venv.envconfig.envdir))
+    return _poetry.VirtualEnv(path=Path(venv.env_dir))
 
 
 def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:

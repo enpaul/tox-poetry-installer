@@ -6,7 +6,7 @@ import poetry.factory
 import poetry.installation.pip_installer
 import poetry.utils.env
 import pytest
-import tox
+import tox.tox_env.python.virtual_env.runner
 from poetry.core.packages.package import Package as PoetryPackage
 
 from tox_poetry_installer import utilities
@@ -20,11 +20,8 @@ FAKE_VENV_PATH = Path("nowhere")
 class MockVirtualEnv:
     """Mock class for the :class:`poetry.utils.env.VirtualEnv` and :class:`tox.venv.VirtualEnv`"""
 
-    class MockTestenvConfig:  # pylint: disable=missing-class-docstring
-        envdir = FAKE_VENV_PATH
-
     def __init__(self, *args, **kwargs):
-        self.envconfig = self.MockTestenvConfig()
+        self.env_dir = FAKE_VENV_PATH
         self.installed = []
 
     @staticmethod
@@ -53,7 +50,9 @@ def mock_venv(monkeypatch):
     monkeypatch.setattr(
         poetry.installation.pip_installer, "PipInstaller", MockPipInstaller
     )
-    monkeypatch.setattr(tox.venv, "VirtualEnv", MockVirtualEnv)
+    monkeypatch.setattr(
+        tox.tox_env.python.virtual_env.runner, "VirtualEnvRunner", MockVirtualEnv
+    )
     monkeypatch.setattr(poetry.utils.env, "VirtualEnv", MockVirtualEnv)
 
 

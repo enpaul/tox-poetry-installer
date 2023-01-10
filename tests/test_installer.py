@@ -3,7 +3,7 @@ import time
 from unittest import mock
 
 import pytest
-import tox.venv
+import tox.tox_env.python.virtual_env.runner
 from poetry.factory import Factory
 
 from .fixtures import mock_poetry_factory
@@ -19,7 +19,7 @@ def test_deduplication(mock_venv, mock_poetry_factory):
         item.name: item for item in poetry.locker.locked_repository().packages
     }
 
-    venv = tox.venv.VirtualEnv()
+    venv = tox.tox_env.python.virtual_env.runner.VirtualEnvRunner()
     to_install = [packages["toml"], packages["toml"]]
 
     installer.install(poetry, venv, to_install)
@@ -43,12 +43,12 @@ def test_parallelization(mock_venv, mock_poetry_factory):
         packages["attrs"],
     ]
 
-    venv_sequential = tox.venv.VirtualEnv()
+    venv_sequential = tox.tox_env.python.virtual_env.runner.VirtualEnvRunner()
     start_sequential = time.time()
     installer.install(poetry, venv_sequential, to_install, 0)
     sequential = time.time() - start_sequential
 
-    venv_parallel = tox.venv.VirtualEnv()
+    venv_parallel = tox.tox_env.python.virtual_env.runner.VirtualEnvRunner()
     start_parallel = time.time()
     installer.install(poetry, venv_parallel, to_install, 5)
     parallel = time.time() - start_parallel
@@ -76,7 +76,7 @@ def test_propagates_exceptions_during_installation(
         item.name: item for item in poetry.locker.locked_repository().packages
     }
     to_install = [packages["toml"]]
-    venv = tox.venv.VirtualEnv()
+    venv = tox.tox_env.python.virtual_env.runner.VirtualEnvRunner()
     fake_exception = ValueError("my testing exception")
 
     with mock.patch.object(
