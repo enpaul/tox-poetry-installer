@@ -38,7 +38,7 @@ poetry = ["poetry", "cleo"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cleo = {version = "^1.0.0a5", optional = true, allow-prereleases = true}
+cleo = {version = ">=1.0,<3.0", optional = true}
 poetry = {version = "^1.2.0", optional = true}
 poetry-core = "^1.1.0"
 tox = "^3.8.0"
