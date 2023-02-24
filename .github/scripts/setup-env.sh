@@ -8,7 +8,7 @@
 set -e;
 
 CI_CACHE=$HOME/.cache;
-POETRY_VERSION=1.2.0;
+POETRY_VERSION=1.3.2;
 
 mkdir --parents "$CI_CACHE";
 
