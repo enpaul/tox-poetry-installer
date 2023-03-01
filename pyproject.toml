@@ -48,7 +48,7 @@ tox = "^3.8.0"
 bandit = "^1.6.2"
 black = "^22.3.0"
 blacken-docs = "^1.8.0"
-ipython = "^7.18.1"
+ipython = {version = "^8.10.1", python = "^3.8"}
 mdformat = "^0.6"
 mdformat-gfm = "^0.2"
 mypy = "^0.930"
@@ -58,10 +58,15 @@ pylint = "^2.13.0"
 pytest = "^6.0.2"
 pytest-cov = "^2.10.1"
 reorder-python-imports = "^2.3.5"
-safety = "^1.9.0"
+safety = "^2.2.0"
 toml = "^0.10.1"
 tox = "^3.20.0"
 types-toml = "^0.10.1"
+# This is a workaround for this issue with the Poetry export
+# plugin which was blocking the 'security' CI check:
+#
+# https://github.com/python-poetry/poetry-plugin-export/issues/176
+virtualenv = ">=20.15,<20.16"
 
 [build-system]
 requires = ["poetry-core>=1.1.0"]
