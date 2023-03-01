@@ -2,6 +2,16 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.10.1
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.10.1),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.10.1/)
+
+- Add PyPI classifier for Python-3.11 compatibility
+- Add CI support for Python-3.11
+- Add support for Poetry-1.3.x (#83)
+
 ## Version 0.10.0
 
 View this release on:
