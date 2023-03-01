@@ -165,8 +165,8 @@ commands = ...
 > **Note:** Setting `poetry_dep_groups = [dev]` on an environment that also installs the
 > project package is functionally equivalent to running `poetry install`.
 
-> **Note:** The `install_dev_deps` configuration option is deprecated. See \[Configuration
-> Options\](#configuration-options\] for more information.
+> **Note:** The `install_dev_deps` configuration option is deprecated. See [Configuration
+> Options](#configuration-options) for more information.
 
 Finally, we can also install an unlocked dependency (a dependency which doesn't take its
 version from the Poetry lockfile) into the test environment alongside the locked ones. We
