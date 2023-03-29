@@ -8,7 +8,6 @@ from poetry.factory import Factory
 
 from .fixtures import mock_poetry_factory
 from .fixtures import mock_venv
-from tox_poetry_installer import _poetry
 from tox_poetry_installer import installer
 from tox_poetry_installer import utilities
 
@@ -68,6 +67,8 @@ def test_propagates_exceptions_during_installation(
 ):
     # Assert that an exception which occurs during installation is properly raised.
     # Regression test for https://github.com/enpaul/tox-poetry-installer/issues/86
+    from tox_poetry_installer import _poetry
+
     poetry = Factory().create_poetry(None)
     packages: utilities.PackageMap = {
         item.name: item for item in poetry.locker.locked_repository().packages
