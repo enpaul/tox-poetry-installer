@@ -2,6 +2,16 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 0.10.2
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.10.2),
+[PyPI](https://pypi.org/project/tox-poetry-installer/0.10.2/)
+
+- Update documentation with best practices and Poetry 1.2+ command syntax
+- Fix failed install of sdist package not raising an exception in multi-threaded mode.
+  Contributed by [chriskuehl](https://github.com/chriskuehl) (#86)
+
 ## Version 0.10.1
 
 View this release on:
