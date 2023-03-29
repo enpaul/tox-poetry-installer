@@ -65,9 +65,11 @@ def test_parallelization(mock_venv, mock_poetry_factory):
 def test_propagates_exceptions_during_installation(
     mock_venv, mock_poetry_factory, num_threads
 ):
-    # Assert that an exception which occurs during installation is properly raised.
-    # Regression test for https://github.com/enpaul/tox-poetry-installer/issues/86
-    from tox_poetry_installer import _poetry
+    """Assert that an exception which occurs during installation is properly raised.
+
+    Regression test for https://github.com/enpaul/tox-poetry-installer/issues/86
+    """
+    from tox_poetry_installer import _poetry  # pylint: disable=import-outside-toplevel
 
     poetry = Factory().create_poetry(None)
     packages: utilities.PackageMap = {
