@@ -71,11 +71,20 @@ def install(
             yield lambda func, arg: func(arg)
 
     with _optional_parallelize() as executor:
+        futures = []
         for dependency in packages:
             if dependency not in installed:
                 installed.add(dependency)
                 logger.debug(f"Queuing {dependency}")
-                executor(logged_install, dependency)
+                future = executor(logged_install, dependency)
+                if future is not None:
+                    futures.append(future)
             else:
                 logger.debug(f"Skipping {dependency}, already installed")
         logger.debug("Waiting for installs to finish...")
+
+        for future in concurrent.futures.as_completed(futures):
+            # Don't actually care about the return value, just waiting on the
+            # future to ensure any exceptions that were raised in the called
+            # function are propagated.
+            future.result()
