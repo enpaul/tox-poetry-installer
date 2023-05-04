@@ -29,8 +29,12 @@ from tox_poetry_installer import exceptions
 
 try:
     from cleo.io.null_io import NullIO
+    from poetry.config.config import Config
+    from poetry.core.packages.dependency import Dependency as PoetryDependency
+    from poetry.core.packages.package import Package as PoetryPackage
     from poetry.factory import Factory
-    from poetry.installation.pip_installer import PipInstaller
+    from poetry.installation.executor import Executor
+    from poetry.installation.operations.install import Install
     from poetry.poetry import Poetry
     from poetry.utils.env import VirtualEnv
 except ImportError:

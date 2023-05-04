@@ -1,13 +1,14 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, unused-argument, too-few-public-methods
 import time
 from pathlib import Path
+from typing import List
 
 import poetry.factory
-import poetry.installation.pip_installer
+import poetry.installation.executor
 import poetry.utils.env
 import pytest
 import tox.tox_env.python.virtual_env.runner
-from poetry.core.packages.package import Package as PoetryPackage
+from poetry.installation.operations.operation import Operation
 
 from tox_poetry_installer import utilities
 
@@ -33,23 +34,21 @@ class MockVirtualEnv:
         return (1, 2, 3)
 
 
-class MockPipInstaller:
-    """Mock class for the :class:`poetry.installation.pip_installer.PipInstaller`"""
+class MockExecutor:
+    """Mock class for the :class:`poetry.installation.executor.Executor`"""
 
     def __init__(self, env: MockVirtualEnv, **kwargs):
         self.env = env
 
-    def install(self, package: PoetryPackage):
-        self.env.installed.append(package)
+    def execute(self, operations: List[Operation]):
+        self.env.installed.extend([operation.package for operation in operations])
         time.sleep(1)
 
 
 @pytest.fixture
 def mock_venv(monkeypatch):
     monkeypatch.setattr(utilities, "convert_virtualenv", lambda venv: venv)
-    monkeypatch.setattr(
-        poetry.installation.pip_installer, "PipInstaller", MockPipInstaller
-    )
+    monkeypatch.setattr(poetry.installation.executor, "Executor", MockExecutor)
     monkeypatch.setattr(
         tox.tox_env.python.virtual_env.runner, "VirtualEnvRunner", MockVirtualEnv
     )

@@ -81,8 +81,8 @@ def test_propagates_exceptions_during_installation(
 
     with mock.patch.object(
         _poetry,
-        "PipInstaller",
-        **{"return_value.install.side_effect": fake_exception},
+        "Executor",
+        **{"return_value.execute.side_effect": fake_exception},
     ):
         with pytest.raises(ValueError) as exc_info:
             installer.install(poetry, venv, to_install, num_threads)
