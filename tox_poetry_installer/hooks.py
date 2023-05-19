@@ -7,6 +7,7 @@ themselves manageable).
 from itertools import chain
 from typing import List
 
+from tox.config.cli.parser import ToxParser
 from tox.config.sets import ConfigSet
 from tox.config.sets import EnvConfigSet
 from tox.plugin import impl
@@ -28,6 +29,25 @@ def tox_add_core_config(core_conf: ConfigSet):
         of_type=int,
         default=constants.DEFAULT_INSTALL_THREADS,
         desc="Number of locked dependencies to install simultaneously; set to 0 to disable parallel installation",
+    )
+
+
+@impl
+def tox_add_option(parser: ToxParser):
+    """Add additional command line arguments to tox to configure plugin behavior"""
+    parser.add_argument(
+        "--require-poetry",
+        action="store_true",
+        dest="require_poetry",
+        help="(deprecated) Trigger a failure if Poetry is not available to Tox",
+    )
+
+    parser.add_argument(
+        "--parallel-install-threads",
+        type=int,
+        dest="parallel_install_threads",
+        default=constants.DEFAULT_INSTALL_THREADS,
+        help="Number of locked dependencies to install simultaneously; set to 0 to disable parallel installation",
     )
 
 
@@ -164,10 +184,9 @@ def tox_on_install(
         raise err
 
     dependencies = utilities.dedupe_packages(group_deps + env_deps + project_deps)
-
     installer.install(
         poetry,
         tox_env,
         dependencies,
-        tox_env.core["parallel_install_threads"],
+        tox_env.options.parallel_install_threads,
     )

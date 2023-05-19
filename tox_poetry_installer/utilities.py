@@ -37,7 +37,7 @@ def check_preconditions(venv: ToxVirtualEnv) -> "_poetry.Poetry":
     if isinstance(venv, PackageToxEnv):
         raise exceptions.SkipEnvironment(f"Skipping Tox provisioning env '{venv.name}'")
 
-    if venv.conf["require_poetry"]:
+    if venv.options.require_poetry:
         logger.warning(
             "DEPRECATION: The '--require-poetry' runtime option is deprecated and will be "
             "removed in version 1.0.0. Please update test environments that require Poetry to "
