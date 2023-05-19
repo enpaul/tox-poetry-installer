@@ -30,7 +30,7 @@ source: ## Build Python source distribution package
 	poetry build --format sdist
 
 test: ## Run the project testsuite(s)
-	poetry run tox --recreate
+	poetry run tox --recreate --parallel
 
 dev: ## Create the local dev environment
 	poetry install --extras poetry --sync
