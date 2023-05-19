@@ -68,8 +68,8 @@ View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.8.4),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.8.4/)
 
-- Fix issue where incompatible package versions were selected for installation when multiple
-  package versions were in the lockfile
+- Fix issue where incompatible package versions were selected for installation when
+  multiple package versions were in the lockfile
 
 ## Version 0.8.3
 
@@ -86,9 +86,9 @@ View this release on:
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.8.2/)
 
 - Improve debug-level logging for package installation, and time how long installing each
-  package takes. Contributed by [Rebecca
-  Turner](https://github.com/9999years) (#63).
-- Fix crash caused by the package-under-test depending on Poetry's unsafe dependencies ([#65](https://github.com/enpaul/tox-poetry-installer/issues/65))
+  package takes. Contributed by [Rebecca Turner](https://github.com/9999years) (#63).
+- Fix crash caused by the package-under-test depending on Poetry's unsafe dependencies
+  ([#65](https://github.com/enpaul/tox-poetry-installer/issues/65))
 
 ## Version 0.8.1
 
@@ -138,7 +138,8 @@ View this release on:
   process
 - Add integration with Poetry's compatibility
   [`Marker`](https://github.com/python-poetry/poetry-core/blob/master/poetry/core/version/markers.py)
-  object system for determining package compatibility with the current platform ([#43](https://github.com/enpaul/tox-poetry-installer/issues/43))
+  object system for determining package compatibility with the current platform
+  ([#43](https://github.com/enpaul/tox-poetry-installer/issues/43))
 - Add missing PyPI classifier for Python 3
 
 ## Version 0.6.3
@@ -163,8 +164,8 @@ View this release on:
   [CVE-2020-29651](https://nvd.nist.gov/vuln/detail/CVE-2020-29651)
 - Fix dependency identification failing when the package under test is a transient
   dependency of a locked dependency specified for installation
-- Fix `AttributeError` being raised while creating the Tox self-provisioned environment when
-  using either the
+- Fix `AttributeError` being raised while creating the Tox self-provisioned environment
+  when using either the
   [`minversion`](https://tox.readthedocs.io/en/latest/config.html#conf-minversion) or
   [`requires`](https://tox.readthedocs.io/en/latest/config.html#conf-requires) Tox config
   options
@@ -179,8 +180,8 @@ View this release on:
   installation problems
 - Fix regression around handling of Poetry's unsafe packages when the unsafe package is a
   transient dependency ([#33](https://github.com/enpaul/tox-poetry-installer/issues/33))
-- Fix handling of Poetry's unsafe packages when the unsafe package is a primary (environment
-  or package) dependency
+- Fix handling of Poetry's unsafe packages when the unsafe package is a primary
+  (environment or package) dependency
 
 ## Version 0.6.0
 
@@ -204,7 +205,8 @@ View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.5.2),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.5.2/)
 
-- Fix always attempting to install dependencies with incompatible python version constraints
+- Fix always attempting to install dependencies with incompatible python version
+  constraints
 - Fix always attempting to install dependencies with incompatible python platforms
 
 ## Version 0.5.1
@@ -226,8 +228,8 @@ View this release on:
 
 - Add option `locked_deps` to better support both locked and unlocked dependencies in a
   single environment
-- Add blocking functionality when using `require_locked_deps = true` to prevent other hooks
-  from running after this one
+- Add blocking functionality when using `require_locked_deps = true` to prevent other
+  hooks from running after this one
 - Update documentation to include new configuration options and errors
 - Update documentation to improve future maintainability
 - Update module structure to move from single-file module to multi-file directory module
@@ -251,7 +253,8 @@ View this release on:
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.3.1/)
 
 - Fix error when installing an environment with no extras specified in the configuration
-- Fix problem where only the dependencies of the sequentially last extra would be installed
+- Fix problem where only the dependencies of the sequentially last extra would be
+  installed
 - Fix regression causing no project dependencies to be installed
 
 ## Version 0.3.0
@@ -273,7 +276,8 @@ View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.2.4),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.2.4/)
 
-- Fix support for Poetry-1.1 ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
+- Fix support for Poetry-1.1
+  ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - Include tests in sdist ([#8](https://github.com/enpaul/tox-poetry-installer/issues/8))
 
 ## Version 0.2.3
@@ -282,8 +286,10 @@ View this release on:
 [Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.2.3),
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.2.3/)
 
-- Fix usage of the plugin in non-Poetry based projects ([#1](https://github.com/enpaul/tox-poetry-installer/issues/1))
-- Fix treating dependency names as case sensitive when they shouldn't be ([#7](https://github.com/enpaul/tox-poetry-installer/issues/7))
+- Fix usage of the plugin in non-Poetry based projects
+  ([#1](https://github.com/enpaul/tox-poetry-installer/issues/1))
+- Fix treating dependency names as case sensitive when they shouldn't be
+  ([#7](https://github.com/enpaul/tox-poetry-installer/issues/7))
 
 ## Version 0.2.2
 
@@ -292,7 +298,8 @@ View this release on:
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.2.2/)
 
 - Fix breaking when running Tox in projects that do not use Poetry for their
-  environment/dependency management ([#1](https://github.com/enpaul/tox-poetry-installer/issues/1))
+  environment/dependency management
+  ([#1](https://github.com/enpaul/tox-poetry-installer/issues/1))
 
 ## Version 0.2.1
 
@@ -343,8 +350,8 @@ View this release on:
 [PyPI](https://pypi.org/project/tox-poetry-installer/0.1.2/)
 
 - Test trivial functionality on Python-3.6 and Python-3.7
-- Fix disagreement between `pyproject.toml` and module metadata on what the current version
-  is
+- Fix disagreement between `pyproject.toml` and module metadata on what the current
+  version is
 - Fix constant named for PEP-440 that should have been named for PEP-508
 
 ## Version 0.1.1

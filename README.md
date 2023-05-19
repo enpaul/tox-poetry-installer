@@ -33,7 +33,8 @@ See the
 [Changelog](https://github.com/enpaul/tox-poetry-installer/blob/devel/CHANGELOG.md) for
 release history.
 
-*See also: [official Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html) and [the official Poetry documentation on using Tox](https://python-poetry.org/docs/faq/#is-tox-supported)*
+*See also: [official Tox plugins](https://tox.readthedocs.io/en/latest/plugins.html) and
+[the official Poetry documentation on using Tox](https://python-poetry.org/docs/faq/#is-tox-supported)*
 
 ## Feature Overview
 
@@ -52,7 +53,9 @@ release history.
 
 ## User Documentation
 
-*This section is for users looking to integrate the plugin with their project or CI system. For information on contributing to the plugin please see the [Developer Docs](#developer-documentation)*
+*This section is for users looking to integrate the plugin with their project or CI
+system. For information on contributing to the plugin please see the
+[Developer Docs](#developer-documentation)*
 
 ### Installing
 
@@ -145,9 +148,9 @@ locked_deps =
 commands = ...
 ```
 
-> ℹ️ **Note:** Settings configured on the main `testenv` environment are inherited by child
-> test environments (for example, `testenv:foo`). To override this, specify the setting in
-> the child environment with a different value.
+> ℹ️ **Note:** Settings configured on the main `testenv` environment are inherited by
+> child test environments (for example, `testenv:foo`). To override this, specify the
+> setting in the child environment with a different value.
 
 Alternatively, we can skip specifying all of our dependencies for a test environment in
 the Tox config and install Poetry dependency groups directly:
@@ -161,8 +164,8 @@ poetry_dep_groups =
 commands = ...
 ```
 
-> ℹ️ **Note:** The `install_dev_deps` configuration option is deprecated. See [Configuration
-> Options](#configuration-options) for more information.
+> ℹ️ **Note:** The `install_dev_deps` configuration option is deprecated. See
+> [Configuration Options](#configuration-options) for more information.
 
 Finally, we can also install an unlocked dependency (a dependency which doesn't take its
 version from the Poetry lockfile) into the test environment alongside the locked ones. We
@@ -190,9 +193,9 @@ All options listed below are Tox environment options and can be applied to one o
 environment sections of the `tox.ini` file. They cannot be applied to the global Tox
 configuration section.
 
-> ℹ️ **Note:** Settings configured on the main `testenv` environment are inherited by child
-> test environments (for example, `testenv:foo`). To override this, specify the setting in
-> the child environment with a different value.
+> ℹ️ **Note:** Settings configured on the main `testenv` environment are inherited by
+> child test environments (for example, `testenv:foo`). To override this, specify the
+> setting in the child environment with a different value.
 
 | Option                 |  Type   | Default | Description                                                                                                                                                                                                                                                                                                                                                          |
 | :--------------------- | :-----: | :-----: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -202,9 +205,9 @@ configuration section.
 | `require_poetry`       | Boolean |  False  | Whether Tox should be forced to fail if the plugin cannot import Poetry locally. If `False` then the plugin will be skipped for the test environment if Poetry cannot be imported. If `True` then the plugin will force the environment to error and the Tox run to fail.                                                                                            |
 | `poetry_dep_groups`    |  List   |  `[]`   | Names of Poetry dependency groups specified in `pyproject.toml` to install to the test environment.                                                                                                                                                                                                                                                                  |
 
-> ℹ️ **Note:** The `install_dev_deps` configuration option is deprecated and will be removed
-> in version 1.0.0. Please set `poetry_dep_groups = [dev]` in `tox.ini` for environments
-> that install the development dependencies.
+> ℹ️ **Note:** The `install_dev_deps` configuration option is deprecated and will be
+> removed in version 1.0.0. Please set `poetry_dep_groups = [dev]` in `tox.ini` for
+> environments that install the development dependencies.
 
 ### Runtime Options
 
@@ -238,8 +241,8 @@ error will be set to one of the "Status" values below to indicate what the error
 | `RequiresUnsafeDepError`        | Indicates that the package-under-test depends on a package that Poetry has classified as unsafe and cannot be installed.                                                                                                        |
 
 > ℹ️ **Note:** One or more of these errors can be caused by the `pyproject.toml` being out
-> of sync with the Poetry lockfile. If this is the case, than a warning will be logged when
-> Tox is run.
+> of sync with the Poetry lockfile. If this is the case, than a warning will be logged
+> when Tox is run.
 
 ### Other Notes
 
@@ -250,8 +253,8 @@ these options are made obsolete by the Poetry lockfile: either they aren't neede
 equivalent functionality is instead taken directly from the package details Poetry stores
 in its lockfile.
 
-> ℹ️ **Note:** The unsupported Tox config options will still apply to unlocked dependencies
-> being installed with the default Tox installation backend.
+> ℹ️ **Note:** The unsupported Tox config options will still apply to unlocked
+> dependencies being installed with the default Tox installation backend.
 
 - [`install_command`](https://tox.readthedocs.io/en/latest/config.html#conf-install_command)
 - [`pip_pre`](https://tox.readthedocs.io/en/latest/config.html#conf-pip_pre)
@@ -273,8 +276,8 @@ built-in
 option) for the new version to be found and installed.
 
 > ℹ️ **Note:** To force Tox to always recreate a test environment the
-> [`recreate`](https://tox.readthedocs.io/en/latest/config.html#conf-recreate) config option
-> can be set.
+> [`recreate`](https://tox.readthedocs.io/en/latest/config.html#conf-recreate) config
+> option can be set.
 
 #### Using with an unmanaged Poetry installation
 
@@ -288,8 +291,8 @@ cases, this plugin specifies the `poetry` package as an optional dependency that
 installed using a setuptools extra also named `poetry`.
 
 > ⚠️ **Warning:** This plugin requires Poetry to function. If the plugin is installed
-> without the `poetry` setuptools extra then Poetry must be installed independently for the
-> plugin to function properly.
+> without the `poetry` setuptools extra then Poetry must be installed independently for
+> the plugin to function properly.
 
 To skip installing the `poetry` package as a dependency of `tox-poetry-installer`, do not
 specify the `poetry` extra when adding the plugin:
@@ -324,7 +327,8 @@ python -c '\
 ## Developer Documentation
 
 All project contributors and participants are expected to adhere to the
-[Contributor Covenant Code of Conduct, v2](CODE_OF_CONDUCT.md) ([external link](https://www.contributor-covenant.org/version/2/0/code_of_conduct/)).
+[Contributor Covenant Code of Conduct, v2](CODE_OF_CONDUCT.md)
+([external link](https://www.contributor-covenant.org/version/2/0/code_of_conduct/)).
 
 The `devel` branch has the latest (and potentially unstable) changes. The stable releases
 are tracked on [Github](https://github.com/enpaul/tox-poetry-installer/releases),
@@ -377,35 +381,39 @@ production environments on a provisional basis only.
 
 - Beta classification was assigned with
   [v0.6.0](https://github.com/enpaul/tox-poetry-installer/releases/tag/0.6.0)
-- Stable classification will be assigned when the test suite covers an acceptable number of
-  use cases
+- Stable classification will be assigned when the test suite covers an acceptable number
+  of use cases
 
 ### Path to Beta
 
 - [x] Verify that primary package dependencies (from the `.package` env) are installed
   correctly using the Poetry backend.
-- [x] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras) Tox
-  configuration option ([#4](https://github.com/enpaul/tox-poetry-installer/issues/4))
+- [x] Support the [`extras`](https://tox.readthedocs.io/en/latest/config.html#conf-extras)
+  Tox configuration option ([#4](https://github.com/enpaul/tox-poetry-installer/issues/4))
 - [x] Add per-environment Tox configuration option to fall back to default installation
   backend.
-- [ ] ~Add warnings when an unsupported Tox configuration option is detected while using the
-  Poetry backend.~ ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))
-- [x] Add trivial tests to ensure the project metadata is consistent between the pyproject.toml
-  and the module constants.
-- [x] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and improve
-  robustness of the Tox and Poetry module imports to avoid potentially breaking API changes
-  in upstream packages. ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
+- [ ] ~Add warnings when an unsupported Tox configuration option is detected while using
+  the Poetry backend.~ ([#5](https://github.com/enpaul/tox-poetry-installer/issues/5))
+- [x] Add trivial tests to ensure the project metadata is consistent between the
+  pyproject.toml and the module constants.
+- [x] Update to use [poetry-core](https://github.com/python-poetry/poetry-core) and
+  improve robustness of the Tox and Poetry module imports to avoid potentially breaking
+  API changes in upstream packages.
+  ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [ ] ~Find and implement a way to mitigate the
   [UNSAFE_DEPENDENCIES issue](https://github.com/python-poetry/poetry/issues/1584) in
   Poetry.~ ([#6](https://github.com/enpaul/tox-poetry-installer/issues/6))
-- [x] Fix logging to make proper use of Tox's logging reporter infrastructure ([#3](https://github.com/enpaul/tox-poetry-installer/issues/3))
-- [x] Add configuration option for installing all dev-dependencies to a testenv ([#14](https://github.com/enpaul/tox-poetry-installer/issues/14))
+- [x] Fix logging to make proper use of Tox's logging reporter infrastructure
+  ([#3](https://github.com/enpaul/tox-poetry-installer/issues/3))
+- [x] Add configuration option for installing all dev-dependencies to a testenv
+  ([#14](https://github.com/enpaul/tox-poetry-installer/issues/14))
 
 ### Path to Stable
 
 Everything in Beta plus...
 
-- [ ] Fully replace dependency on `poetry` with dependency on `poetry-core` ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
+- [ ] Fully replace dependency on `poetry` with dependency on `poetry-core`
+  ([#2](https://github.com/enpaul/tox-poetry-installer/issues/2))
 - [x] Add comprehensive unit tests
 - [ ] ~Add tests for each feature version of Tox between 3.8 and 3.20~
 - [x] Add tests for Python-3.6, 3.7, 3.8, and 3.9
