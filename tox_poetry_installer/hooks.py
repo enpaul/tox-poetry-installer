@@ -184,6 +184,8 @@ def tox_on_install(
         raise err
 
     dependencies = utilities.dedupe_packages(group_deps + env_deps + project_deps)
+
+    logger.info(f"Installing {len(dependencies)} dependencies from Poetry lock file")
     installer.install(
         poetry,
         tox_env,
