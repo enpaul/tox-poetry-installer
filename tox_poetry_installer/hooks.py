@@ -8,7 +8,6 @@ from itertools import chain
 from typing import List
 
 from tox.config.cli.parser import ToxParser
-from tox.config.sets import ConfigSet
 from tox.config.sets import EnvConfigSet
 from tox.plugin import impl
 from tox.tox_env.api import ToxEnv as ToxVirtualEnv
@@ -18,18 +17,6 @@ from tox_poetry_installer import exceptions
 from tox_poetry_installer import installer
 from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
-
-
-@impl
-def tox_add_core_config(core_conf: ConfigSet):
-    """Add required core configuration options to the tox INI file"""
-
-    core_conf.add_config(
-        "parallel_install_threads",
-        of_type=int,
-        default=constants.DEFAULT_INSTALL_THREADS,
-        desc="Number of locked dependencies to install simultaneously; set to 0 to disable parallel installation",
-    )
 
 
 @impl
