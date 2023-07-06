@@ -140,19 +140,13 @@ def tox_on_install(
             f"Identified {len(env_deps)} environment dependencies to install to env"
         )
 
-        install_project_deps = (
-            tox_env.conf["install_project_deps"]
-            if tox_env.conf["install_project_deps"] is not None
-            else (not tox_env.conf["skip_install"] and not tox_env.core["no_package"])
-        )
-
         # extras are not set in a testenv if skip_install=true
         try:
             extras = tox_env.conf["extras"]
         except KeyError:
             extras = []
 
-        if install_project_deps:
+        if tox_env.conf["install_project_deps"]:
             project_deps = utilities.find_project_deps(
                 packages, virtualenv, poetry, extras
             )
