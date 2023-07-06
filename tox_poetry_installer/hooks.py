@@ -166,7 +166,6 @@ def tox_on_install(
         logger.error(str(err))
         raise err
     except Exception as err:
-        # tox_env.status = "InternalError"
         logger.error(f"Internal plugin error: {err}")
         raise err
 
