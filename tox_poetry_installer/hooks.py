@@ -93,8 +93,9 @@ def tox_on_install(
     try:
         poetry = utilities.check_preconditions(tox_env)
     except exceptions.SkipEnvironment as err:
-        if isinstance(err, exceptions.PoetryNotInstalledError) and (
-            tox_env.core["require_poetry"] or tox_env.conf["require_poetry"]
+        if (
+            isinstance(err, exceptions.PoetryNotInstalledError)
+            and tox_env.conf["require_poetry"]
         ):
             logger.error(str(err))
             raise err
