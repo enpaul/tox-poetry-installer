@@ -2,6 +2,19 @@
 
 See also: [Github Release Page](https://github.com/enpaul/tox-poetry-installer/releases).
 
+## Version 1.0.0 Beta 1
+
+View this release on:
+[Github](https://github.com/enpaul/tox-poetry-installer/releases/tag/1.0.0b1),
+[PyPI](https://pypi.org/project/tox-poetry-installer/1.0.0b1)
+
+- Update Poetry compatibility to include >=1.5
+- Update Tox compatibility to use Tox 4
+- Remove support for Tox 3
+- Remove deprecated `--require-poetry` command line option
+- Remove deprecated `install_dev_deps` confguration option
+- Remove deprecated `--parallelize-locked-install` command line option
+
 ## Version 0.10.3
 
 View this release on:

@@ -205,10 +205,6 @@ configuration section.
 | `require_poetry`       | Boolean |  False  | Whether Tox should be forced to fail if the plugin cannot import Poetry locally. If `False` then the plugin will be skipped for the test environment if Poetry cannot be imported. If `True` then the plugin will force the environment to error and the Tox run to fail.                                                                                            |
 | `poetry_dep_groups`    |  List   |  `[]`   | Names of Poetry dependency groups specified in `pyproject.toml` to install to the test environment.                                                                                                                                                                                                                                                                  |
 
-> ℹ️ **Note:** The `install_dev_deps` configuration option is deprecated and will be
-> removed in version 1.0.0. Please set `poetry_dep_groups = [dev]` in `tox.ini` for
-> environments that install the development dependencies.
-
 ### Runtime Options
 
 All arguments listed below can be passed to the `tox` command to modify runtime behavior
@@ -217,13 +213,6 @@ of the plugin.
 | Argument                     |  Type   | Default | Description                                                                                                                                                                                                                                                                          |
 | :--------------------------- | :-----: | :-----: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--parallel-install-threads` | Integer |  `10`   | Number of worker threads to use to install dependencies in parallel. Installing in parallel with more threads can greatly speed up the install process, but can cause race conditions during install. Pass this option with the value `0` to entirely disable parallel installation. |
-
-> ℹ️ **Note:** The `--require-poetry` runtime option is deprecated and will be removed in
-> version 1.0.0. Please set `require_poetry = true` in `tox.ini` for environments that
-> should fail if Poetry is not available.
-
-> ℹ️ **Note:** The `--parallelize-locked-install` option is deprecated and will be removed
-> in version 1.0.0. Please use the `--parallel-install-threads` option.
 
 ### Errors
 
