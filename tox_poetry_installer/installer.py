@@ -9,8 +9,7 @@ from datetime import datetime
 from typing import Collection
 from typing import Set
 
-from poetry.core.packages.package import Package as PoetryPackage
-from tox.venv import VirtualEnv as ToxVirtualEnv
+from tox.tox_env.api import ToxEnv as ToxVirtualEnv
 
 from tox_poetry_installer import logger
 from tox_poetry_installer import utilities
@@ -22,7 +21,7 @@ if typing.TYPE_CHECKING:
 def install(
     poetry: "_poetry.Poetry",
     venv: ToxVirtualEnv,
-    packages: Collection[PoetryPackage],
+    packages: Collection["_poetry.PoetryPackage"],
     parallels: int = 0,
 ):
     """Install a bunch of packages to a virtualenv
@@ -35,22 +34,21 @@ def install(
     """
     from tox_poetry_installer import _poetry
 
-    logger.info(
-        f"Installing {len(packages)} packages to environment at {venv.envconfig.envdir}"
-    )
+    logger.info(f"Installing {len(packages)} packages to environment at {venv.env_dir}")
 
-    pip = _poetry.PipInstaller(
+    install_executor = _poetry.Executor(
         env=utilities.convert_virtualenv(venv),
         io=_poetry.NullIO(),
         pool=poetry.pool,
+        config=_poetry.Config(),
     )
 
-    installed: Set[PoetryPackage] = set()
+    installed: Set[_poetry.PoetryPackage] = set()
 
-    def logged_install(dependency: PoetryPackage) -> None:
+    def logged_install(dependency: _poetry.PoetryPackage) -> None:
         start = datetime.now()
         logger.debug(f"Installing {dependency}")
-        pip.install(dependency)
+        install_executor.execute([_poetry.Install(package=dependency)])
         end = datetime.now()
         logger.debug(f"Finished installing {dependency} in {end - start}")
 

@@ -1,13 +1,14 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, unused-argument, too-few-public-methods
 import time
 from pathlib import Path
+from typing import List
 
 import poetry.factory
-import poetry.installation.pip_installer
+import poetry.installation.executor
 import poetry.utils.env
 import pytest
-import tox
-from poetry.core.packages.package import Package as PoetryPackage
+import tox.tox_env.python.virtual_env.runner
+from poetry.installation.operations.operation import Operation
 
 from tox_poetry_installer import utilities
 
@@ -20,11 +21,8 @@ FAKE_VENV_PATH = Path("nowhere")
 class MockVirtualEnv:
     """Mock class for the :class:`poetry.utils.env.VirtualEnv` and :class:`tox.venv.VirtualEnv`"""
 
-    class MockTestenvConfig:  # pylint: disable=missing-class-docstring
-        envdir = FAKE_VENV_PATH
-
     def __init__(self, *args, **kwargs):
-        self.envconfig = self.MockTestenvConfig()
+        self.env_dir = FAKE_VENV_PATH
         self.installed = []
 
     @staticmethod
@@ -36,24 +34,24 @@ class MockVirtualEnv:
         return (1, 2, 3)
 
 
-class MockPipInstaller:
-    """Mock class for the :class:`poetry.installation.pip_installer.PipInstaller`"""
+class MockExecutor:
+    """Mock class for the :class:`poetry.installation.executor.Executor`"""
 
     def __init__(self, env: MockVirtualEnv, **kwargs):
         self.env = env
 
-    def install(self, package: PoetryPackage):
-        self.env.installed.append(package)
+    def execute(self, operations: List[Operation]):
+        self.env.installed.extend([operation.package for operation in operations])
         time.sleep(1)
 
 
 @pytest.fixture
 def mock_venv(monkeypatch):
     monkeypatch.setattr(utilities, "convert_virtualenv", lambda venv: venv)
+    monkeypatch.setattr(poetry.installation.executor, "Executor", MockExecutor)
     monkeypatch.setattr(
-        poetry.installation.pip_installer, "PipInstaller", MockPipInstaller
+        tox.tox_env.python.virtual_env.runner, "VirtualEnvRunner", MockVirtualEnv
     )
-    monkeypatch.setattr(tox.venv, "VirtualEnv", MockVirtualEnv)
     monkeypatch.setattr(poetry.utils.env, "VirtualEnv", MockVirtualEnv)
 
 
