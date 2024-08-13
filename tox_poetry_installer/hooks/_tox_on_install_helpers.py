@@ -1,10 +1,11 @@
-"""Helper utility functions, usually bridging Tox and Poetry functionality"""
-# Silence this one globally to support the internal function imports for the proxied poetry module.
-# See the docstring in 'tox_poetry_installer._poetry' for more context.
-# pylint: disable=import-outside-toplevel
+"""Helper functions for the :func:`tox_on_install` hook"""
 import collections
+import concurrent.futures
+import contextlib
 import typing
+from datetime import datetime
 from pathlib import Path
+from typing import Collection
 from typing import Dict
 from typing import List
 from typing import Sequence
@@ -21,7 +22,6 @@ from tox_poetry_installer import logger
 
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
-
 
 PackageMap = Dict[str, List[PoetryPackage]]
 
@@ -50,30 +50,6 @@ def check_preconditions(venv: ToxVirtualEnv) -> "_poetry.Poetry":
         raise exceptions.SkipEnvironment(
             f"Skipping installation of locked dependencies due to a Poetry error: {err}"
         ) from None
-
-
-def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
-    """Convert a Tox venv to a Poetry venv
-
-    :param venv: Tox ``VirtualEnv`` object representing a tox virtual environment
-    :returns: Poetry ``VirtualEnv`` object representing a poetry virtual environment
-    """
-    from tox_poetry_installer import _poetry
-
-    return _poetry.VirtualEnv(path=Path(venv.env_dir))
-
-
-def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
-    """Build the mapping of package names to objects
-
-    :param poetry: Populated poetry object to load locked packages from
-    :returns: Mapping of package names to Poetry package objects
-    """
-    packages = collections.defaultdict(list)
-    for package in poetry.locker.locked_repository().packages:
-        packages[package.name].append(package)
-
-    return packages
 
 
 def identify_transients(
@@ -264,6 +240,76 @@ def find_dev_deps(
     return dedupe_packages(dev_group_deps + legacy_dev_group_deps)
 
 
+def install_package(
+    poetry: "_poetry.Poetry",
+    venv: ToxVirtualEnv,
+    packages: Collection["_poetry.PoetryPackage"],
+    parallels: int = 0,
+):
+    """Install a bunch of packages to a virtualenv
+
+    :param poetry: Poetry object the packages were sourced from
+    :param venv: Tox virtual environment to install the packages to
+    :param packages: List of packages to install to the virtual environment
+    :param parallels: Number of parallel processes to use for installing dependency packages, or
+                      ``None`` to disable parallelization.
+    """
+    from tox_poetry_installer import _poetry
+
+    logger.info(f"Installing {len(packages)} packages to environment at {venv.env_dir}")
+
+    install_executor = _poetry.Executor(
+        env=convert_virtualenv(venv),
+        io=_poetry.NullIO(),
+        pool=poetry.pool,
+        config=_poetry.Config(),
+    )
+
+    installed: Set[_poetry.PoetryPackage] = set()
+
+    def logged_install(dependency: _poetry.PoetryPackage) -> None:
+        start = datetime.now()
+        logger.debug(f"Installing {dependency}")
+        install_executor.execute([_poetry.Install(package=dependency)])
+        end = datetime.now()
+        logger.debug(f"Finished installing {dependency} in {end - start}")
+
+    @contextlib.contextmanager
+    def _optional_parallelize():
+        """A bit of cheat, really
+
+        A context manager that exposes a common interface for the caller that optionally
+        enables/disables the usage of the parallel thread pooler depending on the value of
+        the ``parallels`` parameter.
+        """
+        if parallels > 0:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=parallels
+            ) as executor:
+                yield executor.submit
+        else:
+            yield lambda func, arg: func(arg)
+
+    with _optional_parallelize() as executor:
+        futures = []
+        for dependency in packages:
+            if dependency not in installed:
+                installed.add(dependency)
+                logger.debug(f"Queuing {dependency}")
+                future = executor(logged_install, dependency)
+                if future is not None:
+                    futures.append(future)
+            else:
+                logger.debug(f"Skipping {dependency}, already installed")
+        logger.debug("Waiting for installs to finish...")
+
+        for future in concurrent.futures.as_completed(futures):
+            # Don't actually care about the return value, just waiting on the
+            # future to ensure any exceptions that were raised in the called
+            # function are propagated.
+            future.result()
+
+
 def dedupe_packages(packages: Sequence[PoetryPackage]) -> List[PoetryPackage]:
     """Deduplicates a sequence of PoetryPackages while preserving ordering
 
@@ -273,3 +319,27 @@ def dedupe_packages(packages: Sequence[PoetryPackage]) -> List[PoetryPackage]:
     # Make this faster, avoid method lookup below
     seen_add = seen.add
     return [p for p in packages if not (p in seen or seen_add(p))]
+
+
+def convert_virtualenv(venv: ToxVirtualEnv) -> "_poetry.VirtualEnv":
+    """Convert a Tox venv to a Poetry venv
+
+    :param venv: Tox ``VirtualEnv`` object representing a tox virtual environment
+    :returns: Poetry ``VirtualEnv`` object representing a poetry virtual environment
+    """
+    from tox_poetry_installer import _poetry
+
+    return _poetry.VirtualEnv(path=Path(venv.env_dir))
+
+
+def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
+    """Build the mapping of package names to objects
+
+    :param poetry: Populated poetry object to load locked packages from
+    :returns: Mapping of package names to Poetry package objects
+    """
+    packages = collections.defaultdict(list)
+    for package in poetry.locker.locked_repository().packages:
+        packages[package.name].append(package)
+
+    return packages

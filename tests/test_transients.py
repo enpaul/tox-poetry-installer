@@ -4,19 +4,21 @@ import poetry.utils.env
 import pytest
 from poetry.puzzle.provider import Provider
 
+import tox_poetry_installer.hooks._tox_on_install_helpers
 from .fixtures import mock_poetry_factory
 from .fixtures import mock_venv
 from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
-from tox_poetry_installer import utilities
 
 
 def test_allow_missing():
     """Test that the ``allow_missing`` parameter works as expected"""
     with pytest.raises(exceptions.LockedDepNotFoundError):
-        utilities.identify_transients("luke-skywalker", {}, None)
+        tox_poetry_installer.hooks._tox_on_install_helpers.identify_transients(
+            "luke-skywalker", {}, None
+        )
 
-    assert not utilities.identify_transients(
+    assert not tox_poetry_installer.hooks._tox_on_install_helpers.identify_transients(
         "darth-vader", {}, None, allow_missing=["darth-vader"]
     )
 
@@ -36,7 +38,9 @@ def test_exclude_pep508():
         "=>foo",
     ]:
         with pytest.raises(exceptions.LockedDepVersionConflictError):
-            utilities.identify_transients(version, {}, None)
+            tox_poetry_installer.hooks._tox_on_install_helpers.identify_transients(
+                version, {}, None
+            )
 
 
 def test_functional(mock_poetry_factory, mock_venv):
@@ -46,7 +50,9 @@ def test_functional(mock_poetry_factory, mock_venv):
     is always the last in the returned list.
     """
     pypoetry = poetry.factory.Factory().create_poetry(None)
-    packages = utilities.build_package_map(pypoetry)
+    packages = tox_poetry_installer.hooks._tox_on_install_helpers.build_package_map(
+        pypoetry
+    )
     venv = poetry.utils.env.VirtualEnv()  # pylint: disable=no-value-for-parameter
 
     requests_requires = [
@@ -57,12 +63,18 @@ def test_functional(mock_poetry_factory, mock_venv):
         packages["requests"][0],
     ]
 
-    transients = utilities.identify_transients("requests", packages, venv)
+    transients = tox_poetry_installer.hooks._tox_on_install_helpers.identify_transients(
+        "requests", packages, venv
+    )
 
     assert all((item in requests_requires) for item in transients)
     assert all((item in transients) for item in requests_requires)
 
     for package in [packages["requests"][0], packages["tox"][0], packages["flask"][0]]:
-        transients = utilities.identify_transients(package.name, packages, venv)
+        transients = (
+            tox_poetry_installer.hooks._tox_on_install_helpers.identify_transients(
+                package.name, packages, venv
+            )
+        )
         assert transients[-1] == package
         assert len(transients) == len(set(transients))

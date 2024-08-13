@@ -10,7 +10,7 @@ import pytest
 import tox.tox_env.python.virtual_env.runner
 from poetry.installation.operations.operation import Operation
 
-from tox_poetry_installer import utilities
+import tox_poetry_installer.hooks._tox_on_install_helpers
 
 
 TEST_PROJECT_PATH = Path(__file__).parent.resolve() / "test-project"
@@ -47,7 +47,11 @@ class MockExecutor:
 
 @pytest.fixture
 def mock_venv(monkeypatch):
-    monkeypatch.setattr(utilities, "convert_virtualenv", lambda venv: venv)
+    monkeypatch.setattr(
+        tox_poetry_installer.hooks._tox_on_install_helpers,
+        "convert_virtualenv",
+        lambda venv: venv,
+    )
     monkeypatch.setattr(poetry.installation.executor, "Executor", MockExecutor)
     monkeypatch.setattr(
         tox.tox_env.python.virtual_env.runner, "VirtualEnvRunner", MockVirtualEnv

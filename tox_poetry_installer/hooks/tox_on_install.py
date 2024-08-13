@@ -10,9 +10,15 @@ from tox.plugin import impl
 from tox.tox_env.api import ToxEnv as ToxVirtualEnv
 
 from tox_poetry_installer import exceptions
-from tox_poetry_installer import installer
 from tox_poetry_installer import logger
-from tox_poetry_installer import utilities
+from tox_poetry_installer.hooks._tox_on_install_helpers import build_package_map
+from tox_poetry_installer.hooks._tox_on_install_helpers import check_preconditions
+from tox_poetry_installer.hooks._tox_on_install_helpers import convert_virtualenv
+from tox_poetry_installer.hooks._tox_on_install_helpers import dedupe_packages
+from tox_poetry_installer.hooks._tox_on_install_helpers import find_additional_deps
+from tox_poetry_installer.hooks._tox_on_install_helpers import find_group_deps
+from tox_poetry_installer.hooks._tox_on_install_helpers import find_project_deps
+from tox_poetry_installer.hooks._tox_on_install_helpers import install_package
 
 
 @impl
@@ -20,7 +26,7 @@ def tox_on_install(
     tox_env: ToxVirtualEnv, section: str  # pylint: disable=unused-argument
 ) -> None:
     try:
-        poetry = utilities.check_preconditions(tox_env)
+        poetry = check_preconditions(tox_env)
     except exceptions.SkipEnvironment as err:
         if (
             isinstance(err, exceptions.PoetryNotInstalledError)
@@ -33,7 +39,7 @@ def tox_on_install(
 
     logger.info(f"Loaded project pyproject.toml from {poetry.file}")
 
-    virtualenv = utilities.convert_virtualenv(tox_env)
+    virtualenv = convert_virtualenv(tox_env)
 
     if not poetry.locker.is_fresh():
         logger.warning(
@@ -46,13 +52,13 @@ def tox_on_install(
                 f"Unlocked dependencies '{tox_env.conf['deps']}' specified for environment '{tox_env.name}' which requires locked dependencies"
             )
 
-        packages = utilities.build_package_map(poetry)
+        packages = build_package_map(poetry)
 
-        group_deps = utilities.dedupe_packages(
+        group_deps = dedupe_packages(
             list(
                 chain(
                     *[
-                        utilities.find_group_deps(group, packages, virtualenv, poetry)
+                        find_group_deps(group, packages, virtualenv, poetry)
                         for group in tox_env.conf["poetry_dep_groups"]
                     ]
                 )
@@ -62,7 +68,7 @@ def tox_on_install(
             f"Identified {len(group_deps)} group dependencies to install to env"
         )
 
-        env_deps = utilities.find_additional_deps(
+        env_deps = find_additional_deps(
             packages, virtualenv, poetry, tox_env.conf["locked_deps"]
         )
 
@@ -77,9 +83,7 @@ def tox_on_install(
             extras = []
 
         if tox_env.conf["install_project_deps"]:
-            project_deps = utilities.find_project_deps(
-                packages, virtualenv, poetry, extras
-            )
+            project_deps = find_project_deps(packages, virtualenv, poetry, extras)
             logger.info(
                 f"Identified {len(project_deps)} project dependencies to install to env"
             )
@@ -93,10 +97,10 @@ def tox_on_install(
         logger.error(f"Internal plugin error: {err}")
         raise err
 
-    dependencies = utilities.dedupe_packages(group_deps + env_deps + project_deps)
+    dependencies = dedupe_packages(group_deps + env_deps + project_deps)
 
     logger.info(f"Installing {len(dependencies)} dependencies from Poetry lock file")
-    installer.install(
+    install_package(
         poetry,
         tox_env,
         dependencies,
