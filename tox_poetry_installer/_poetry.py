@@ -37,7 +37,7 @@ try:
     from poetry.installation.operations.install import Install
     from poetry.poetry import Poetry
     from poetry.utils.env import VirtualEnv
-except ImportError:
+except ImportError as err:
     raise exceptions.PoetryNotInstalledError(
-        f"No version of Poetry could be imported under the current environment for '{sys.executable}'"
+        f"Failed to import a supported version of Poetry under the current environment '{sys.executable}': {err}"
     ) from None

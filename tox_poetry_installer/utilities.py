@@ -46,9 +46,9 @@ def check_preconditions(venv: ToxVirtualEnv) -> "_poetry.Poetry":
     #
     # ``RuntimeError`` is dangerous to blindly catch because it can be (and in Poetry's case,
     # is) raised in many different places for different purposes.
-    except RuntimeError:
+    except RuntimeError as err:
         raise exceptions.SkipEnvironment(
-            "Project does not use Poetry for env management, skipping installation of locked dependencies"
+            f"Skipping installation of locked dependencies due to a Poetry error: {err}"
         ) from None
 
 
