@@ -11,17 +11,6 @@ from tox_poetry_installer import exceptions
 from tox_poetry_installer import utilities
 
 
-def test_exclude_unsafe():
-    """Test that the unsafe packages are properly excluded
-
-    Also ensure that the internal constant matches the value from Poetry
-    """
-    assert Provider.UNSAFE_PACKAGES == constants.UNSAFE_PACKAGES
-
-    for dep in constants.UNSAFE_PACKAGES:
-        assert not utilities.identify_transients(dep, {}, None)
-
-
 def test_allow_missing():
     """Test that the ``allow_missing`` parameter works as expected"""
     with pytest.raises(exceptions.LockedDepNotFoundError):

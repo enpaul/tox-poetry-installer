@@ -132,13 +132,6 @@ def identify_transients(
     except KeyError as err:
         missing = err.args[0]
 
-        if missing in constants.UNSAFE_PACKAGES:
-            logger.warning(
-                f"Installing package '{missing}' using Poetry is not supported and will be skipped"
-            )
-            logger.debug(f"Skipping {missing}: designated unsafe by Poetry")
-            return []
-
         if missing in allow_missing:
             logger.debug(f"Skipping {missing}: package is allowed to be unlocked")
             return []
@@ -170,11 +163,6 @@ def find_project_deps(
     :param poetry: Poetry object for the current project
     :param extras: Sequence of extra names to include the dependencies of
     """
-
-    if any(dep.name in constants.UNSAFE_PACKAGES for dep in poetry.package.requires):
-        raise exceptions.RequiresUnsafeDepError(
-            f"Project package requires one or more unsafe dependencies ({', '.join(constants.UNSAFE_PACKAGES)}) which cannot be installed with Poetry"
-        )
 
     required_dep_names = [
         item.name for item in poetry.package.requires if not item.is_optional()

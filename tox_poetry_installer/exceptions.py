@@ -11,7 +11,6 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
    +-- LockedDepNotFoundError
    +-- ExtraNotFoundError
    +-- LockedDepsRequiredError
-   +-- RequiresUnsafeDepError
 
 """
 
@@ -42,7 +41,3 @@ class ExtraNotFoundError(ToxPoetryInstallerException):
 
 class LockedDepsRequiredError(ToxPoetryInstallerException):
     """Environment cannot specify unlocked dependencies when locked dependencies are required"""
-
-
-class RequiresUnsafeDepError(ToxPoetryInstallerException):
-    """Package under test depends on an unsafe dependency and cannot be installed"""
