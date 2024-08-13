@@ -26,7 +26,6 @@ poetry --version --no-ansi;
 poetry run pip --version;
 
 poetry install \
-  --extras poetry \
   --quiet \
   --remove-untracked \
   --no-ansi;
