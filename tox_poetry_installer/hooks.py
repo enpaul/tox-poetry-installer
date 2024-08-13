@@ -23,13 +23,6 @@ from tox_poetry_installer import utilities
 def tox_add_option(parser: ToxParser):
     """Add additional command line arguments to tox to configure plugin behavior"""
     parser.add_argument(
-        "--require-poetry",
-        action="store_true",
-        dest="require_poetry",
-        help="(deprecated) Trigger a failure if Poetry is not available to Tox",
-    )
-
-    parser.add_argument(
         "--parallel-install-threads",
         type=int,
         dest="parallel_install_threads",
