@@ -21,13 +21,13 @@ at the module scope it is imported into function scope wherever Poetry component
 moves import errors from load time to runtime which allows the plugin to be skipped if Poetry isn't
 installed and/or a more helpful error be raised within the Tox framework.
 """
-# pylint: disable=unused-import
 import sys
 
 from tox_poetry_installer import exceptions
 
 
 try:
+    # pylint: disable=import-outside-toplevel,unused-import
     from cleo.io.null_io import NullIO
     from poetry.config.config import Config
     from poetry.core.packages.dependency import Dependency as PoetryDependency

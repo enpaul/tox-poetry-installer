@@ -21,10 +21,9 @@ from tox_poetry_installer.hooks._tox_on_install_helpers import find_project_deps
 from tox_poetry_installer.hooks._tox_on_install_helpers import install_package
 
 
+# pylint: disable=missing-function-docstring,unused-argument
 @impl
-def tox_on_install(
-    tox_env: ToxVirtualEnv, section: str  # pylint: disable=unused-argument
-) -> None:
+def tox_on_install(tox_env: ToxVirtualEnv, *args) -> None:
     try:
         poetry = check_preconditions(tox_env)
     except exceptions.SkipEnvironment as err:

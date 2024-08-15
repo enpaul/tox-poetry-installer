@@ -1,13 +1,11 @@
-# pylint: disable=missing-module-docstring, redefined-outer-name, unused-argument, wrong-import-order, unused-import
+# pylint: disable=missing-module-docstring,redefined-outer-name,unused-argument,unused-import,protected-access
 import poetry.factory
 import poetry.utils.env
 import pytest
-from poetry.puzzle.provider import Provider
 
 import tox_poetry_installer.hooks._tox_on_install_helpers
 from .fixtures import mock_poetry_factory
 from .fixtures import mock_venv
-from tox_poetry_installer import constants
 from tox_poetry_installer import exceptions
 
 

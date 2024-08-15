@@ -23,6 +23,10 @@ from tox_poetry_installer import logger
 if typing.TYPE_CHECKING:
     from tox_poetry_installer import _poetry
 
+# This is globally disabled to support the usage of the _poetry shadow module
+# pylint: disable=import-outside-toplevel
+
+
 PackageMap = Dict[str, List[PoetryPackage]]
 
 

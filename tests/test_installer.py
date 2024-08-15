@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, redefined-outer-name, unused-argument, wrong-import-order, unused-import
+# pylint: disable=missing-module-docstring,redefined-outer-name,unused-argument,unused-import,protected-access
 import time
 from unittest import mock
 

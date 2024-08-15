@@ -5,6 +5,7 @@ from tox.plugin import impl
 from tox_poetry_installer import constants
 
 
+# pylint: disable=missing-function-docstring
 @impl
 def tox_add_option(parser: ToxParser):
     parser.add_argument(

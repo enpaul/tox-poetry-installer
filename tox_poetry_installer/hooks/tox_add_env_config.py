@@ -5,8 +5,11 @@ from tox.config.sets import EnvConfigSet
 from tox.plugin import impl
 
 
+# pylint: disable=missing-function-docstring
 @impl
-def tox_add_env_config(env_conf: EnvConfigSet):
+def tox_add_env_config(
+    env_conf: EnvConfigSet,
+):
     env_conf.add_config(
         "poetry_dep_groups",
         of_type=List[str],
