@@ -11,6 +11,7 @@ All exceptions should inherit from the common base exception :exc:`ToxPoetryInst
    +-- LockedDepNotFoundError
    +-- ExtraNotFoundError
    +-- LockedDepsRequiredError
+   +-- LockfileParsingError
 
 """
 
@@ -41,3 +42,7 @@ class ExtraNotFoundError(ToxPoetryInstallerException):
 
 class LockedDepsRequiredError(ToxPoetryInstallerException):
     """Environment cannot specify unlocked dependencies when locked dependencies are required"""
+
+
+class LockfileParsingError(ToxPoetryInstallerException):
+    """Failed to load or parse the Poetry lockfile"""

@@ -41,10 +41,16 @@ def tox_on_install(
 
     virtualenv = convert_virtualenv(tox_env)
 
-    if not poetry.locker.is_fresh():
-        logger.warning(
-            f"The Poetry lock file is not up to date with the latest changes in {poetry.file}"
-        )
+    try:
+        if not poetry.locker.is_fresh():
+            logger.warning(
+                f"The Poetry lock file is not up to date with the latest changes in {poetry.file}"
+            )
+    except FileNotFoundError as err:
+        logger.error(f"Could not parse lockfile: {err}")
+        raise exceptions.LockfileParsingError(
+            f"Could not parse lockfile: {err}"
+        ) from err
 
     try:
         if tox_env.conf["require_locked_deps"] and tox_env.conf["deps"].lines():
