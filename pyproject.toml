@@ -39,26 +39,26 @@ python = "^3.7"
 cleo = ">=1.0,<3.0"
 poetry = "^1.5.0"
 poetry-core = "^1.1.0"
-tox = "^4"
+tox = "^4.1"
 
 [tool.poetry.group.dev.dependencies]
-bandit = "^1.6.2"
-black = "^22.3.0"
-blacken-docs = "^1.8.0"
-ipython = {version = "^8.10.1", python = "^3.8"}
-mdformat = "^0.7"
-mdformat-gfm = "^0.3"
-mypy = "^0.930"
-pre-commit = "^2.7.1"
-pre-commit-hooks = "^3.3.0"
-pylint = "^2.13.0"
-pytest = "^6.0.2"
-pytest-cov = "^2.10.1"
-reorder-python-imports = "^2.3.5"
-safety = "^2.2.0"
-toml = "^0.10.1"
-tox = "^4"
-types-toml = "^0.10.1"
+bandit = {version = "^1.7.7", python = "^3.10"}
+black = {version = "^24.3.0", python = "^3.10"}
+blacken-docs = {version = "^1.8.0", python = "^3.10"}
+ipython = {version = "^8.10.1", python = "^3.10"}
+mdformat = {version = "^0.7", python = "^3.10"}
+mdformat-gfm = {version = "^0.3", python = "^3.10"}
+mypy = {version = "^0.930", python = "^3.10"}
+pre-commit = {version = "^2.7.1", python = "^3.10"}
+pre-commit-hooks = {version = "^3.3.0", python = "^3.10"}
+pylint = {version = "^2.13.0", python = "^3.10"}
+pytest = {version = "^6.0.2", python = "^3.10"}
+pytest-cov = {version = "^2.10.1", python = "^3.10"}
+reorder-python-imports = {version = "^2.3.5", python = "^3.10"}
+safety = {version = "^2.2.0", python = "^3.10"}
+toml = {version = "^0.10.1", python = "^3.10"}
+tox = "^4.1"
+types-toml = {version = "^0.10.1", python = "^3.10"}
 
 [build-system]
 requires = ["poetry-core>=1.1.0"]
