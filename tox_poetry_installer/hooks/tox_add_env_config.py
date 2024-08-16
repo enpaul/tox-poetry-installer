@@ -1,4 +1,5 @@
 """Add required env configuration options to the tox INI file"""
+
 from typing import List
 
 from tox.config.sets import EnvConfigSet

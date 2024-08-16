@@ -5,6 +5,7 @@ in this module.
 
 All constants should be type hinted.
 """
+
 from typing import Tuple
 
 from tox_poetry_installer import __about__

@@ -3,6 +3,7 @@
 The next best thing to having one source of truth is having a way to ensure all of your
 sources of truth agree with each other.
 """
+
 from pathlib import Path
 
 import toml

@@ -1,4 +1,5 @@
 """Add additional command line arguments to tox to configure plugin behavior"""
+
 from tox.config.cli.parser import ToxParser
 from tox.plugin import impl
 
