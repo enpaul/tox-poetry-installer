@@ -47,12 +47,13 @@ repos:
 
       - id: reorder-python-imports
         name: reorder-python-imports
-        entry: reorder-python-imports
+        entry: isort
         language: system
-        args:
-          - "--unclassifiable-application-module=tox_poetry_installer"
+        require_serial: true
         types:
           - python
+        args:
+          - "--filter-files"
 
       - id: black
         name: black
