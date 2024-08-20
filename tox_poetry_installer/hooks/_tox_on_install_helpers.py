@@ -341,7 +341,7 @@ def dedupe_packages(
     seen: Set[poetry.core.packages.package.Package] = set()
     # Make this faster, avoid method lookup below
     seen_add = seen.add
-    return [p for p in packages if not (p in seen or seen_add(p))]
+    return [item for item in packages if not (item in seen or seen_add(item))]
 
 
 def convert_virtualenv(venv: tox.tox_env.api.ToxEnv) -> poetry.utils.env.VirtualEnv:
