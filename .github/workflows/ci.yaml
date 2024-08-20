@@ -12,8 +12,6 @@ jobs:
     strategy:
       matrix:
         python:
-          - version: "3.7"
-            toxenv: py37
           - version: "3.8"
             toxenv: py38
           - version: "3.9"
@@ -22,6 +20,8 @@ jobs:
             toxenv: py310
           - version: "3.11"
             toxenv: py311
+          - version: "3.12"
+            toxenv: py312
       fail-fast: true
     steps:
       - name: Checkout

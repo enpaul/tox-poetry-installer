@@ -4,6 +4,7 @@ Calling ``tox.reporter.something()`` and having to format a string with the pref
 gets really old fast, but more importantly it also makes the flow of the main code
 more difficult to follow because of the added complexity.
 """
+
 import logging
 
 from tox_poetry_installer import constants
