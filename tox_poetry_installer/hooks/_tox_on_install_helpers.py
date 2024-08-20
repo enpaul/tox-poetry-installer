@@ -12,6 +12,7 @@ from typing import List
 from typing import Sequence
 from typing import Set
 
+from packaging.utils import NormalizedName
 from poetry.core.packages.dependency import Dependency as PoetryDependency
 from poetry.core.packages.package import Package as PoetryPackage
 from tox.tox_env.api import ToxEnv as ToxVirtualEnv
@@ -154,7 +155,9 @@ def find_project_deps(
     for extra in extras:
         logger.info(f"Processing project extra '{extra}'")
         try:
-            extra_dep_names += [item.name for item in poetry.package.extras[extra]]
+            extra_dep_names += [
+                item.name for item in poetry.package.extras[NormalizedName(extra)]
+            ]
         except KeyError:
             raise exceptions.ExtraNotFoundError(
                 f"Environment specifies project extra '{extra}' which was not found in the lockfile"
@@ -213,7 +216,11 @@ def find_group_deps(
         packages,
         venv,
         poetry,
-        poetry.pyproject.data["tool"]["poetry"]
+        # the type ignore here is due to the difficulties around getting nested data
+        # from the inherrently unstructured toml structure (which necessarily is flexibly
+        # typed) but in a situation where there is a meta-structure applied to it (i.e. a
+        # pyproject.toml structure).
+        poetry.pyproject.data["tool"]["poetry"]  # type: ignore
         .get("group", {})
         .get(group, {})
         .get("dependencies", {})
@@ -239,7 +246,11 @@ def find_dev_deps(
         packages,
         venv,
         poetry,
-        poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),
+        # the type ignore here is due to the difficulties around getting nested data
+        # from the inherrently unstructured toml structure (which necessarily is flexibly
+        # typed) but in a situation where there is a meta-structure applied to it (i.e. a
+        # pyproject.toml structure).
+        poetry.pyproject.data["tool"]["poetry"].get("dev-dependencies", {}).keys(),  # type: ignore
     )
 
     # Poetry 1.2 unions these two toml sections.
@@ -345,6 +356,6 @@ def build_package_map(poetry: "_poetry.Poetry") -> PackageMap:
     """
     packages = collections.defaultdict(list)
     for package in poetry.locker.locked_repository().packages:
-        packages[package.name].append(package)
+        packages[str(package.name)].append(package)
 
     return packages
