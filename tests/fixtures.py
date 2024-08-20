@@ -5,10 +5,10 @@ from typing import List
 
 import poetry.factory
 import poetry.installation.executor
+import poetry.installation.operations.operation
 import poetry.utils.env
 import pytest
 import tox.tox_env.python.virtual_env.runner
-from poetry.installation.operations.operation import Operation
 
 import tox_poetry_installer.hooks._tox_on_install_helpers
 
@@ -40,7 +40,9 @@ class MockExecutor:
     def __init__(self, env: MockVirtualEnv, **kwargs):
         self.env = env
 
-    def execute(self, operations: List[Operation]):
+    def execute(
+        self, operations: List[poetry.installation.operations.operation.Operation]
+    ):
         self.env.installed.extend([operation.package for operation in operations])
         time.sleep(1)
 
@@ -61,9 +63,9 @@ def mock_venv(monkeypatch):
 
 @pytest.fixture(scope="function")
 def mock_poetry_factory(monkeypatch):
-    pypoetry = poetry.factory.Factory().create_poetry(cwd=TEST_PROJECT_PATH)
+    project = poetry.factory.Factory().create_poetry(cwd=TEST_PROJECT_PATH)
 
     def mock_factory(*args, **kwargs):
-        return pypoetry
+        return project
 
     monkeypatch.setattr(poetry.factory.Factory, "create_poetry", mock_factory)

@@ -48,9 +48,9 @@ def test_functional(mock_poetry_factory, mock_venv):
     Trivially test that it resolves dependencies properly and that the parent package
     is always the last in the returned list.
     """
-    pypoetry = poetry.factory.Factory().create_poetry(None)
+    project = poetry.factory.Factory().create_poetry(None)
     packages = tox_poetry_installer.hooks._tox_on_install_helpers.build_package_map(
-        pypoetry
+        project
     )
     venv = poetry.utils.env.VirtualEnv()  # pylint: disable=no-value-for-parameter
 

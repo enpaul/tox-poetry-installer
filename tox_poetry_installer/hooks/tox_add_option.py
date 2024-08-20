@@ -1,14 +1,14 @@
 """Add additional command line arguments to tox to configure plugin behavior"""
 
-from tox.config.cli.parser import ToxParser
-from tox.plugin import impl
+import tox.config.cli.parser
+import tox.plugin
 
 from tox_poetry_installer import constants
 
 
 # pylint: disable=missing-function-docstring
-@impl
-def tox_add_option(parser: ToxParser):
+@tox.plugin.impl
+def tox_add_option(parser: tox.config.cli.parser.ToxParser):
     parser.add_argument(
         "--parallel-install-threads",
         type=int,

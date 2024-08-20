@@ -5,10 +5,10 @@ specified by the Tox environment. Finally these dependencies are installed into 
 environment using the Poetry ``PipInstaller`` backend.
 """
 
-from itertools import chain
+import itertools
 
-from tox.plugin import impl
-from tox.tox_env.api import ToxEnv as ToxVirtualEnv
+import tox.plugin
+import tox.tox_env.api
 
 from tox_poetry_installer import exceptions
 from tox_poetry_installer import logger
@@ -23,8 +23,8 @@ from tox_poetry_installer.hooks._tox_on_install_helpers import install_package
 
 
 # pylint: disable=missing-function-docstring,unused-argument
-@impl
-def tox_on_install(tox_env: ToxVirtualEnv, *args) -> None:
+@tox.plugin.impl
+def tox_on_install(tox_env: tox.tox_env.api.ToxEnv, *args) -> None:
     try:
         poetry = check_preconditions(tox_env)
     except exceptions.SkipEnvironment as err:
@@ -62,7 +62,7 @@ def tox_on_install(tox_env: ToxVirtualEnv, *args) -> None:
 
         group_deps = dedupe_packages(
             list(
-                chain(
+                itertools.chain(
                     *[
                         find_group_deps(group, packages, virtualenv, poetry)
                         for group in tox_env.conf["poetry_dep_groups"]

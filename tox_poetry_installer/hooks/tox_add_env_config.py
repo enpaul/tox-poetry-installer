@@ -2,14 +2,14 @@
 
 from typing import List
 
-from tox.config.sets import EnvConfigSet
-from tox.plugin import impl
+import tox.config.sets
+import tox.plugin
 
 
 # pylint: disable=missing-function-docstring
-@impl
+@tox.plugin.impl
 def tox_add_env_config(
-    env_conf: EnvConfigSet,
+    env_conf: tox.config.sets.EnvConfigSet,
 ):
     env_conf.add_config(
         "poetry_dep_groups",
