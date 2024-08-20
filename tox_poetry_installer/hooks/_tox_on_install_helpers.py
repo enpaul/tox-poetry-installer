@@ -246,6 +246,21 @@ def find_dev_deps(
     return dedupe_packages(dev_group_deps + legacy_dev_group_deps)
 
 
+@contextlib.contextmanager
+def _optional_parallelize(parallels: int):
+    """A bit of cheat, really
+
+    A context manager that exposes a common interface for the caller that optionally
+    enables/disables the usage of the parallel thread pooler depending on the value of
+    the ``parallels`` parameter.
+    """
+    if parallels > 0:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=parallels) as executor:
+            yield executor.submit
+    else:
+        yield lambda func, arg: func(arg)
+
+
 def install_package(
     poetry: "_poetry.Poetry",
     venv: ToxVirtualEnv,
@@ -280,23 +295,7 @@ def install_package(
         end = datetime.now()
         logger.debug(f"Finished installing {dependency} in {end - start}")
 
-    @contextlib.contextmanager
-    def _optional_parallelize():
-        """A bit of cheat, really
-
-        A context manager that exposes a common interface for the caller that optionally
-        enables/disables the usage of the parallel thread pooler depending on the value of
-        the ``parallels`` parameter.
-        """
-        if parallels > 0:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=parallels
-            ) as executor:
-                yield executor.submit
-        else:
-            yield lambda func, arg: func(arg)
-
-    with _optional_parallelize() as executor:
+    with _optional_parallelize(parallels) as executor:
         futures = []
         for dependency in packages:
             if dependency not in installed:
